@@ -9,7 +9,11 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(spacecraft_tests
     test_placeholder.cpp
+    test_physics_model.cpp
+    ${CMAKE_SOURCE_DIR}/src/physics/PhysicsModel.cpp
 )
+
+target_include_directories(spacecraft_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
 target_link_libraries(spacecraft_tests
     GTest::gtest_main

@@ -1,0 +1,55 @@
+#include <gtest/gtest.h>
+#include "control/PIDController.hpp"
+
+TEST(PIDControllerTest, ProportionalOnly)
+{
+    PIDController pid{{.kp = 2.0, .ki = 0.0, .kd = 0.0}, -100.0, 100.0};
+
+    // Błąd 5.0, tylko człon P → wyjście = kp * error = 2.0 * 5.0 = 10.0
+    const double output = pid.compute(5.0, 0.1);
+    EXPECT_NEAR(output, 10.0, 1e-9);
+}
+
+TEST(PIDControllerTest, IntegralAccumulates)
+{
+    PIDController pid{{.kp = 0.0, .ki = 1.0, .kd = 0.0}, -100.0, 100.0};
+
+    // Błąd 1.0 przez 3 kroki po dt=1.0 → integral = 3.0, wyjście = 3.0
+    pid.compute(1.0, 1.0);
+    pid.compute(1.0, 1.0);
+    const double output = pid.compute(1.0, 1.0);
+
+    EXPECT_NEAR(output, 3.0, 1e-9);
+}
+
+TEST(PIDControllerTest, DerivativeOnErrorChange)
+{
+    PIDController pid{{.kp = 0.0, .ki = 0.0, .kd = 1.0}, -100.0, 100.0};
+
+    // Pierwszy krok — brak poprzedniego błędu, pochodna = 0
+    pid.compute(0.0, 0.1);
+
+    // Błąd skacze z 0.0 do 10.0 → pochodna = (10.0 - 0.0) / 0.1 = 100.0
+    const double output = pid.compute(10.0, 0.1);
+    EXPECT_NEAR(output, 100.0, 1e-9);
+}
+
+TEST(PIDControllerTest, OutputClampedToLimits)
+{
+    PIDController pid{{.kp = 100.0, .ki = 0.0, .kd = 0.0}, -50.0, 50.0};
+
+    // kp * error = 100 * 10 = 1000 — ale limit to 50
+    const double output = pid.compute(10.0, 0.1);
+    EXPECT_NEAR(output, 50.0, 1e-9);
+}
+
+TEST(PIDControllerTest, ResetClearsState)
+{
+    PIDController pid{{.kp = 0.0, .ki = 1.0, .kd = 0.0}, -100.0, 100.0};
+
+    pid.compute(5.0, 1.0);  // integral = 5.0
+    pid.reset();
+    const double output = pid.compute(1.0, 1.0);  // po reset integral zaczyna od 0
+
+    EXPECT_NEAR(output, 1.0, 1e-9);
+}

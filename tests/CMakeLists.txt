@@ -8,7 +8,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 add_executable(spacecraft_tests
-    test_placeholder.cpp
     test_physics_model.cpp
     test_pid_controller.cpp
     ${CMAKE_SOURCE_DIR}/src/physics/PhysicsModel.cpp

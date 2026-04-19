@@ -14,7 +14,7 @@ public:
 
     explicit PIDController(Gains gains, double output_min, double output_max);
 
-    // Oblicza wyjście regulatora. dt — czas kroku [s]
+    // compute regulator output, dt - step time [s]
     [[nodiscard]] double compute(double error, double dt);
 
     void reset();

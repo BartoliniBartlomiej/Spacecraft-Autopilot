@@ -41,7 +41,7 @@ tests/
 ```
 
 
-## Architektura systemu
+## UML
 
 Poniższy diagram przedstawia relacje między najważniejszymi klasami w projekcie (wzorzec Strategii, kompozycja PID oraz główny silnik symulacji):
 

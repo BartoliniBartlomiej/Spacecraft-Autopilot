@@ -9,6 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(spacecraft
     src/main.cpp
+    src/core/SimulationEngine.cpp
     src/physics/PhysicsModel.cpp
     src/control/PIDController.cpp
     src/control/Autopilot.cpp

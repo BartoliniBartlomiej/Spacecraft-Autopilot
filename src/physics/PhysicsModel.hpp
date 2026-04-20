@@ -15,7 +15,7 @@ private:
     double m_drag_coefficient;
 
 public:
-    explicit PhysicsModel(double gravity = 9.81, double drag_coefficient = 0.1);
+    explicit PhysicsModel(double gravity = 9.81, double drag_coefficient = 0.01);
 
     [[nodiscard]] State derivative(const State& s, const ThrustCommand& cmd) const; // return derivative of state (dx/dt)
 };

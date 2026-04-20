@@ -11,6 +11,7 @@ add_executable(spacecraft
     src/main.cpp
     src/physics/PhysicsModel.cpp
     src/control/PIDController.cpp
+    src/control/Autopilot.cpp
 )
 
 target_include_directories(spacecraft PRIVATE src)

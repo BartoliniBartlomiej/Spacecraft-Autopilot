@@ -40,6 +40,63 @@ tests/
 └── test_autopilot.cpp
 ```
 
+
+## Architektura systemu
+
+Poniższy diagram przedstawia relacje między najważniejszymi klasami w projekcie (wzorzec Strategii, kompozycja PID oraz główny silnik symulacji):
+
+```mermaid
+classDiagram
+    class State {
+        +double x
+        +double y
+        +double vx
+        +double vy
+        +double mass
+    }
+
+    class ThrustCommand {
+        +double fx
+        +double fy
+    }
+
+    class ControlStrategy {
+        <<interface>>
+        +compute(State, double dt)* ThrustCommand
+        +reset()* void
+    }
+
+    class PIDController {
+        +compute(double error, double dt) double
+    }
+
+    class Autopilot {
+        +compute(State, double dt) ThrustCommand
+    }
+
+    class PhysicsModel {
+        +derivative(State, ThrustCommand) State
+    }
+
+    class SimulationEngine {
+        +run(State) Status
+        +saveRaport() void
+    }
+
+    class Renderer {
+        +draw(State, ThrustCommand, double time, Status) void
+    }
+
+    ControlStrategy <|-- Autopilot : Dziedziczy
+    Autopilot *-- "2" PIDController : Kompozycja (X, Y)
+    
+    SimulationEngine o-- "1" ControlStrategy : Agregacja
+    SimulationEngine *-- "1" PhysicsModel : Kompozycja
+    
+    SimulationEngine ..> State : Używa
+    Autopilot ..> ThrustCommand : Tworzy
+    Renderer ..> State : Obserwuje
+```
 ---
 
 ## Build Instructions

@@ -26,7 +26,8 @@ public:
         TimeLimitReached
     };
 
-    using StepCallback = std::function<void(const State&, double time, Status)>;
+    // using StepCallback = std::function<void(const State&, double time, Status)>;
+    using StepCallback = std::function<void(const State&, const ThrustCommand&, double time, Status)>;
 
     SimulationEngine(Config config,
                      std::unique_ptr<ControlStrategy> autopilot,

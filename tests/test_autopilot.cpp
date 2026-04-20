@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <tuple>
 #include "control/Autopilot.hpp"
 
 TEST(AutopilotTest, ThrustUpWhenFallingTooFast) {
@@ -34,14 +35,16 @@ TEST(AutopilotTest, NoThrustWhenVelocityOnTarget) {
     Autopilot autopilot{config};
 
     State state;
-    state.vy   = 0.0;   // velocity == target velocity
+    state.vy   = 0.0;
     state.vx   = 0.0;
     state.x    = 0.0;
     state.mass = 500.0;
 
     const ThrustCommand cmd = autopilot.compute(state, 0.1);
 
-    EXPECT_NEAR(cmd.fy, 0.0, 1e-9);
+    // Error = 0, so PID = 0 -> only gravity compensation
+    const double expected_fy = 9.81 * state.mass;
+    EXPECT_NEAR(cmd.fy, expected_fy, 1e-6);
     EXPECT_NEAR(cmd.fx, 0.0, 1e-9);
 }
 
@@ -70,7 +73,7 @@ TEST(AutopilotTest, ResetClearsPIDState) {
     Autopilot::Config config;
     config.vertical_gains   = {.kp = 0.0, .ki = 1.0, .kd = 0.0};
     config.horizontal_gains = {.kp = 0.0, .ki = 0.0, .kd = 0.0};
-    config.max_thrust       = 8000.0;
+    config.max_thrust       = 100000.0;  // big limit to not interfere with test
     config.target_vy        = 0.0;
 
     Autopilot autopilot{config};
@@ -79,12 +82,13 @@ TEST(AutopilotTest, ResetClearsPIDState) {
     state.vy   = -10.0;
     state.mass = 500.0;
 
-    autopilot.compute(state, 1.0);  // integral accumulates
+    std::ignore = autopilot.compute(state, 1.0);  // integral accumulates, result intentionally ignored  // integral accumulates
     autopilot.reset();
 
     state.vy = 0.0;  // error = 0 after reset
     const ThrustCommand cmd = autopilot.compute(state, 1.0);
 
-    // Integral = 0 after reset -> output = 0
-    EXPECT_NEAR(cmd.fy, 0.0, 1e-9);
+    // After reset, integral should be cleared, so no extra thrust from it. Only gravity compensation.
+    const double expected_fy = 9.81 * state.mass;
+    EXPECT_NEAR(cmd.fy, expected_fy, 1e-6);
 }

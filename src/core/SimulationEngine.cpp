@@ -12,16 +12,14 @@ SimulationEngine::SimulationEngine(Config config,
     m_physics{physics}
 {}
 
-SimulationEngine::Status SimulationEngine::run(State initial_state) {
-    State state = initial_state;
-    double time = 0.0;
+SimulationEngine::Status SimulationEngine::run(State initial_state)
+{
+    State  state  = initial_state;
+    double time   = 0.0;
     Status status = Status::Running;
 
-    while (status == Status::Running) {
+    while (status == Status::Running)
         status = step(state, time);
-        if (m_callback)
-            m_callback(state, time, status);
-    }
 
     return status;
 }
@@ -35,7 +33,12 @@ SimulationEngine::Status SimulationEngine::step(State& state, double& time)
     if (time >= m_config.time_limit)
         return Status::TimeLimitReached;
 
-    return check_status(state);
+    const Status status = check_status(state);
+
+    if (m_callback)
+        m_callback(state, cmd, time, status);
+
+    return status;
 }
 
 void SimulationEngine::set_step_callback(StepCallback callback) {

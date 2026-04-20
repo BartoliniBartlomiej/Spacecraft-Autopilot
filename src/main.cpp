@@ -37,13 +37,17 @@ int main()
     initial.mass =  500.0;  // 500 kg
 
     double last_log = 0.0;
-    engine.set_step_callback([&last_log](const State& s, double time, SimulationEngine::Status status)
+    engine.set_step_callback([&last_log, &autopilot_config](
+        const State& s, const ThrustCommand& cmd, double time, SimulationEngine::Status status)
     {
         if (time - last_log >= 1.0 || status != SimulationEngine::Status::Running)
         {
+            const double thrust_pct = (cmd.fy / autopilot_config.max_thrust) * 100.0;
+
             std::cout << std::format(
-                "t={:6.1f}s  y={:7.1f}m  vy={:6.2f}m/s  x={:6.1f}m  vx={:5.2f}m/s\n",
-                time, s.y, s.vy, s.x, s.vx);
+                "t={:6.1f}s  y={:7.1f}m  vy={:6.2f}m/s  x={:6.1f}m  vx={:5.2f}m/s  thrust={:5.1f}%\n",
+                time, s.y, s.vy, s.x, s.vx, thrust_pct);
+
             last_log = time;
         }
     });

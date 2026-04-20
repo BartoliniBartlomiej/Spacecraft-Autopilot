@@ -41,10 +41,11 @@ tests/
 ```
 
 ## UML
+Relationships between main classes and interfaces in the simulation architecture
 
 ```mermaid
 classDiagram
-    %% Struktury danych
+    %% Data Structures
     class State {
         +double x
         +double y
@@ -58,7 +59,7 @@ classDiagram
         +double fy
     }
 
-    %% Interfejsy i klasy kontroli
+    %% Interfaces and control classes
     class ControlStrategy {
         <<interface>>
         +compute(State, double dt)* ThrustCommand
@@ -81,7 +82,7 @@ classDiagram
         +reset() void
     }
 
-    %% Fizyka i Silnik
+    %% Physics and Engine
     class PhysicsModel {
         -double m_gravity
         -double m_drag_coefficient
@@ -97,7 +98,7 @@ classDiagram
         +saveRaport() void
     }
 
-    %% Wizualizacja
+    %% Visualization
     class Renderer {
         -Config m_config
         -sf::RenderWindow m_window
@@ -106,24 +107,24 @@ classDiagram
         +draw(State, ThrustCommand, double time, Status) void
     }
 
-    %% Relacje
-    ControlStrategy <|-- Autopilot : Dziedziczy (Realizacja)
-    Autopilot *-- "2" PIDController : Kompozycja (Oś pionowa i pozioma)
+    %% Relationships
+    ControlStrategy <|-- Autopilot : Inheritance (Autopilot implements ControlStrategy)
+    Autopilot *-- "2" PIDController : Composition (Autopilot owns two PIDControllers)
     
-    SimulationEngine o-- "1" ControlStrategy : Agregacja (Wskaźnik unique_ptr)
-    SimulationEngine *-- "1" PhysicsModel : Kompozycja
+    SimulationEngine o-- "1" ControlStrategy : Agregation (Engine uses a ControlStrategy)
+    SimulationEngine *-- "1" PhysicsModel : Composition (Engine owns PhysicsModel)
     
-    SimulationEngine ..> State : Używa
-    SimulationEngine ..> ThrustCommand : Używa
+    SimulationEngine ..> State : Uses
+    SimulationEngine ..> ThrustCommand : Uses
     
-    Autopilot ..> State : Zależy od
-    Autopilot ..> ThrustCommand : Tworzy
+    Autopilot ..> State : Depends on
+    Autopilot ..> ThrustCommand : Constructs
     
-    PhysicsModel ..> State : Zależy od
-    PhysicsModel ..> ThrustCommand : Zależy od
+    PhysicsModel ..> State : Depends on
+    PhysicsModel ..> ThrustCommand : Depends on
     
-    Renderer ..> State : Obserwuje
-    Renderer ..> ThrustCommand : Obserwuje
+    Renderer ..> State : Observes
+    Renderer ..> ThrustCommand : Observes
 ```
 
 ---

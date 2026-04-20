@@ -40,10 +40,7 @@ tests/
 └── test_autopilot.cpp
 ```
 
-
 ## UML
-
-Poniższy diagram przedstawia relacje między najważniejszymi klasami w projekcie (wzorzec Strategii, kompozycja PID oraz główny silnik symulacji):
 
 ```mermaid
 classDiagram
@@ -128,6 +125,7 @@ classDiagram
     Renderer ..> State : Obserwuje
     Renderer ..> ThrustCommand : Obserwuje
 ```
+
 ---
 
 ## Build Instructions

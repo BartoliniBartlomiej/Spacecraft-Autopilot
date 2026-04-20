@@ -8,6 +8,8 @@
 
 #include <memory>
 #include <functional>
+#include <vector>
+#include <string>
 
 class SimulationEngine {
 public:
@@ -38,7 +40,7 @@ public:
     Status step(State& state, double& time); // single step - (for render???)
 
     void set_step_callback(StepCallback callback);
-
+    void saveRaport(const std::string& filename) const;
 private:
     [[nodiscard]] Status check_status(const State& state) const;
     [[nodiscard]] State integrate(const State& state, const ThrustCommand& cmd) const;
@@ -47,5 +49,12 @@ private:
     std::unique_ptr<ControlStrategy> m_autopilot;
     PhysicsModel m_physics;
     StepCallback m_callback;
+
+    struct StepRecord {
+        double time;
+        State state;
+        ThrustCommand cmd;
+    };
+    std::vector<StepRecord> m_history;
 };
 

@@ -3,6 +3,8 @@
 #include "core/SimulationEngine.hpp"
 #include <cmath>
 #include <iostream>
+#include <fstream>
+#include <format>
 
 SimulationEngine::SimulationEngine(Config config,
                                    std::unique_ptr<ControlStrategy> autopilot,
@@ -14,6 +16,8 @@ SimulationEngine::SimulationEngine(Config config,
 
 SimulationEngine::Status SimulationEngine::run(State initial_state)
 {
+    m_history.clear();
+
     State  state  = initial_state;
     double time   = 0.0;
     Status status = Status::Running;
@@ -27,6 +31,7 @@ SimulationEngine::Status SimulationEngine::run(State initial_state)
 SimulationEngine::Status SimulationEngine::step(State& state, double& time)
 {
     const ThrustCommand cmd = m_autopilot->compute(state, m_config.timestep);
+    m_history.push_back({time, state, cmd});
     state = integrate(state, cmd);
     time += m_config.timestep;
 
@@ -98,4 +103,28 @@ State SimulationEngine::integrate(const State& state, const ThrustCommand& cmd) 
     next.vy += (k1.vy + 2*k2.vy + 2*k3.vy + k4.vy) * dt / 6.0;
 
     return next;
+}
+
+void SimulationEngine::saveRaport(const std::string& filename) const {
+    std::ofstream file(filename);
+    
+    if (!file.is_open()) {
+        std::cerr << "Błąd: Nie udało się otworzyć pliku do zapisu raportu: " << filename << "\n";
+        return;
+    }
+
+    // Zapisujemy nagłówki kolumn w pliku CSV
+    file << "Time,X,Y,Vx,Vy,Mass,ThrustX,ThrustY\n";
+
+    // Zapisujemy każdy zarejestrowany krok, używając std::format dla czytelności
+    for (const auto& record : m_history) {
+        file << std::format("{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f}\n",
+                            record.time,
+                            record.state.x, record.state.y,
+                            record.state.vx, record.state.vy,
+                            record.state.mass,
+                            record.cmd.fx, record.cmd.fy);
+    }
+    
+    std::cout << "Raport z symulacji został pomyślnie zapisany w pliku: " << filename << "\n";
 }

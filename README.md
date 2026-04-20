@@ -40,6 +40,94 @@ tests/
 └── test_autopilot.cpp
 ```
 
+
+## Architektura systemu
+
+Poniższy diagram przedstawia relacje między najważniejszymi klasami w projekcie (wzorzec Strategii, kompozycja PID oraz główny silnik symulacji):
+
+```mermaid
+classDiagram
+    %% Struktury danych
+    class State {
+        +double x
+        +double y
+        +double vx
+        +double vy
+        +double mass
+    }
+
+    class ThrustCommand {
+        +double fx
+        +double fy
+    }
+
+    %% Interfejsy i klasy kontroli
+    class ControlStrategy {
+        <<interface>>
+        +compute(State, double dt)* ThrustCommand
+        +reset()* void
+    }
+
+    class PIDController {
+        -Gains m_gains
+        -double m_output_min
+        -double m_output_max
+        -double m_integral
+        -double m_prev_error
+        +compute(double error, double dt) double
+        +reset() void
+    }
+
+    class Autopilot {
+        +Config m_config
+        +compute(State, double dt) ThrustCommand
+        +reset() void
+    }
+
+    %% Fizyka i Silnik
+    class PhysicsModel {
+        -double m_gravity
+        -double m_drag_coefficient
+        +derivative(State, ThrustCommand) State
+    }
+
+    class SimulationEngine {
+        -Config m_config
+        -StepCallback m_callback
+        +run(State) Status
+        +step(State, double time) Status
+        +set_step_callback(StepCallback) void
+        +saveRaport() void
+    }
+
+    %% Wizualizacja
+    class Renderer {
+        -Config m_config
+        -sf::RenderWindow m_window
+        +is_open() bool
+        +handle_events() void
+        +draw(State, ThrustCommand, double time, Status) void
+    }
+
+    %% Relacje
+    ControlStrategy <|-- Autopilot : Dziedziczy (Realizacja)
+    Autopilot *-- "2" PIDController : Kompozycja (Oś pionowa i pozioma)
+    
+    SimulationEngine o-- "1" ControlStrategy : Agregacja (Wskaźnik unique_ptr)
+    SimulationEngine *-- "1" PhysicsModel : Kompozycja
+    
+    SimulationEngine ..> State : Używa
+    SimulationEngine ..> ThrustCommand : Używa
+    
+    Autopilot ..> State : Zależy od
+    Autopilot ..> ThrustCommand : Tworzy
+    
+    PhysicsModel ..> State : Zależy od
+    PhysicsModel ..> ThrustCommand : Zależy od
+    
+    Renderer ..> State : Obserwuje
+    Renderer ..> ThrustCommand : Obserwuje
+```
 ---
 
 ## Build Instructions

@@ -13,6 +13,7 @@ Built as a portfolio project demonstrating clean architecture, modern C++ practi
 - **Physics engine** — 2D Newtonian motion with gravity, thrust, and atmospheric drag
 - **RK4 integrator** — Runge-Kutta 4th order numerical integration
 - **PID autopilot** — dual-axis controller for vertical descent and horizontal stabilization
+- **Data Logging** - CSV output of time, position, velocity, and control commands for post-simulation analysis
 - **Extensible control interface** — `ControlStrategy` abstraction allows plugging in LQR, MPC, or any custom algorithm
 - **Unit tested** — GoogleTest coverage for physics, PID controller, and autopilot logic
 - **CI pipeline** — GitHub Actions builds and runs all tests on every push
@@ -25,19 +26,26 @@ Built as a portfolio project demonstrating clean architecture, modern C++ practi
 ```
 src/
 ├── core/
-│   └── State.hpp               # spacecraft state: position, velocity, mass
+│   ├── State.hpp                 # spacecraft state: position, velocity, mass
+│   └── SimulationEngine.hpp/.cpp # main simulation loop, RK4 integrator, logging
 ├── physics/
-│   ├── PhysicsModel.hpp/cpp    # force accumulation, drag, gravity
+│   └── PhysicsModel.hpp/cpp      # force accumulation, drag, gravity
 ├── control/
-│   ├── ControlStrategy.hpp     # abstract interface for control algorithms
-│   ├── PIDController.hpp/cpp   # clamped PID with anti-windup
-│   └── Autopilot.hpp/cpp       # dual-axis autopilot using PIDController
+│   ├── ControlStrategy.hpp       # abstract interface for control algorithms
+│   ├── PIDController.hpp/cpp     # clamped PID with anti-windup
+│   └── Autopilot.hpp/cpp         # dual-axis autopilot using PIDController
+├── rendering/
+│   └── Renderer.hpp/cpp          # SFML-based visualization
 └── main.cpp
 
 tests/
 ├── test_physics_model.cpp
 ├── test_pid_controller.cpp
 └── test_autopilot.cpp
+
+output_data/                      # stores saved after simulations
+├── raport_1.csv
+└── ...
 ```
 
 ## UML
@@ -199,6 +207,20 @@ Adjust these values to experiment with different landing behaviours — higher `
 
 ---
 
+## Data Logging
+
+First version of the simulation includes CSV logging of time, position, velocity, and control commands. This allows for post-simulation analysis and plotting of trajectories, velocity profiles, and control inputs using tools like python, matplotlib or Excel. 
+
+However, the first version of data logging includes PID controllers parameters, that are constant during the simulation, for each step. This creates a problem with the size of the output file, which grows significantly. In the future, I plan to refactor the logging system to only log parameters when they change, or to log them separately in a configuration file.
+
+| Time   | X       | Y       | Vx     | Vy      | Mass    | ThrustX    | ThrustY     | VerticalError | HorizontalError | VerticalOutput | HorizontalOutput | Kp_v ⚠️| Ki_v⚠️| Kd_v⚠️   | Kp_h⚠️   | Ki_h⚠️   | Kd_h⚠️   |
+|--------|--------|--------|--------|---------|---------|------------|-------------|----------------|-----------------|----------------|------------------|---------|--------|--------|--------|--------|--------|
+| 0.0000 | 50.0000 | 500.0000 | 2.0000 | -50.0000 | 500.0000 | -2550.0000 | 15000.0000 | 48.5000 | -50.0000 | 15000.0000 | -2550.0000 | 1000.0000 | 0.5000 | 30.0000 | 1.0000 | 0.0000 | 0.5000 |
+| 0.0100 | 50.0197 | 499.5010 | 1.9490 | -49.7981 | 500.0000 | -51.0070 | 15000.0000 | 48.2981 | -50.0197 | 15000.0000 | -51.0070 | 1000.0000 | 0.5000 | 30.0000 | 1.0000 | 0.0000 | 0.5000 |
+|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|
+
+---
+
 ## Project Status
 
 | Phase | Status |
@@ -208,10 +230,11 @@ Adjust these values to experiment with different landing behaviours — higher `
 | Autopilot + ControlStrategy interface | ✅ Done |
 | Unit tests (12/12 passing) | ✅ Done |
 | CI pipeline | ✅ Done |
+| SFML visualization | ✅ Done |
 | SimulationEngine (main loop) | 🔄 In progress |
-| SFML visualization | ⏳ Planned |
+| CSV data export | 🔄 In progress |
 | JSON config loader | ⏳ Planned |
-| CSV data export | ⏳ Planned |
+
 
 ---
 

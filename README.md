@@ -203,8 +203,6 @@ Default gains in `config/simulation.json`:
 | Vertical | 2.0 | 0.1 | 1.5 |
 | Horizontal | 1.2 | 0.05 | 0.8 |
 
-Adjust these values to experiment with different landing behaviours — higher `Kd` reduces overshoot, higher `Ki` corrects steady-state drift.
-
 ---
 
 ## Data Logging
@@ -213,7 +211,7 @@ First version of the simulation includes CSV logging of time, position, velocity
 
 However, the first version of data logging includes PID controllers parameters, that are constant during the simulation, for each step. This creates a problem with the size of the output file, which grows significantly. In the future, I plan to refactor the logging system to only log parameters when they change, or to log them separately in a configuration file.
 
-| Time   | X       | Y       | Vx     | Vy      | Mass    | ThrustX    | ThrustY     | VerticalError | HorizontalError | VerticalOutput | HorizontalOutput | Kp_v⚠️| Ki_v⚠️| Kd_v⚠️   | Kp_h⚠️   | Ki_h⚠️   | Kd_h⚠️   |
+| Time   | X      | Y      | Vx     | Vy      | Mass    | ThrustX    | ThrustY   | VerticalError | HorizontalError | VerticalOutput | HorizontalOutput | Kp_v⚠️| Ki_v⚠️| Kd_v⚠️| Kp_h⚠️| Ki_h⚠️| Kd_h⚠️|
 |--------|--------|--------|--------|---------|---------|------------|-------------|----------------|-----------------|----------------|------------------|---------|--------|--------|--------|--------|--------|
 | 0.0000 | 50.0000 | 500.0000 | 2.0000 | -50.0000 | 500.0000 | -2550.0000 | 15000.0000 | 48.5000 | -50.0000 | 15000.0000 | -2550.0000 | 1000.0000 | 0.5000 | 30.0000 | 1.0000 | 0.0000 | 0.5000 |
 | 0.0100 | 50.0197 | 499.5010 | 1.9490 | -49.7981 | 500.0000 | -51.0070 | 15000.0000 | 48.2981 | -50.0197 | 15000.0000 | -51.0070 | 1000.0000 | 0.5000 | 30.0000 | 1.0000 | 0.0000 | 0.5000 |

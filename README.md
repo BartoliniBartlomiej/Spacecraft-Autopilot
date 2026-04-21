@@ -213,11 +213,15 @@ First version of the simulation includes CSV logging of time, position, velocity
 
 However, the first version of data logging includes PID controllers parameters, that are constant during the simulation, for each step. This creates a problem with the size of the output file, which grows significantly. In the future, I plan to refactor the logging system to only log parameters when they change, or to log them separately in a configuration file.
 
-| Time   | X       | Y       | Vx     | Vy      | Mass    | ThrustX    | ThrustY     | VerticalError | HorizontalError | VerticalOutput | HorizontalOutput | Kp_v ⚠️| Ki_v⚠️| Kd_v⚠️   | Kp_h⚠️   | Ki_h⚠️   | Kd_h⚠️   |
+| Time   | X       | Y       | Vx     | Vy      | Mass    | ThrustX    | ThrustY     | VerticalError | HorizontalError | VerticalOutput | HorizontalOutput | Kp_v⚠️| Ki_v⚠️| Kd_v⚠️   | Kp_h⚠️   | Ki_h⚠️   | Kd_h⚠️   |
 |--------|--------|--------|--------|---------|---------|------------|-------------|----------------|-----------------|----------------|------------------|---------|--------|--------|--------|--------|--------|
 | 0.0000 | 50.0000 | 500.0000 | 2.0000 | -50.0000 | 500.0000 | -2550.0000 | 15000.0000 | 48.5000 | -50.0000 | 15000.0000 | -2550.0000 | 1000.0000 | 0.5000 | 30.0000 | 1.0000 | 0.0000 | 0.5000 |
 | 0.0100 | 50.0197 | 499.5010 | 1.9490 | -49.7981 | 500.0000 | -51.0070 | 15000.0000 | 48.2981 | -50.0197 | 15000.0000 | -51.0070 | 1000.0000 | 0.5000 | 30.0000 | 1.0000 | 0.0000 | 0.5000 |
 |...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|...|
+
+In this version data file from 10 minutes of simulation with 100Hz logging frequency is about 4.5MB. Log without PID parameters (`Kp_v`, `Ki_v`, `Kd_v` and `Kp_h`, `Ki_h`, `Kd_h`) is aproximately 3 MB. This represents a 33.3% reduction in file size. 
+
+Although the PID parameters are constant during the simulation, they can be useful for debugging and analysis, especially if we want to experiment with different gain values or use ML techniques to optimize them.
 
 ---
 
@@ -244,6 +248,6 @@ However, the first version of data logging includes PID controllers parameters, 
 - ImGui overlay for live PID tuning
 - Trajectory optimisation (minimum fuel landing)
 - Multi-stage rocket with stage separation
-- Data export for external plotting (matplotlib, MATLAB)
+- Data export for external plotting and analysis (python, matplotlib, MATLAB)
 
 ---

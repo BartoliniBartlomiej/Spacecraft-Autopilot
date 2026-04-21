@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <format>
+#include <filesystem>
 
 SimulationEngine::SimulationEngine(Config config,
                                    std::unique_ptr<ControlStrategy> autopilot,
@@ -31,7 +32,14 @@ SimulationEngine::Status SimulationEngine::run(State initial_state)
 SimulationEngine::Status SimulationEngine::step(State& state, double& time)
 {
     const ThrustCommand cmd = m_autopilot->compute(state, m_config.timestep);
-    m_history.push_back({time, state, cmd});
+
+    // Save step data for reporting
+    Autopilot::Diagnostics diag;
+    if (auto* ap = dynamic_cast<Autopilot*>(m_autopilot.get()))
+        diag = ap->last_diagnostics();
+
+    m_history.push_back({time, state, cmd, diag});
+    
     state = integrate(state, cmd);
     time += m_config.timestep;
 
@@ -106,25 +114,54 @@ State SimulationEngine::integrate(const State& state, const ThrustCommand& cmd) 
 }
 
 void SimulationEngine::saveRaport(const std::string& filename) const {
-    std::ofstream file(filename);
-    
+
+    std::filesystem::path folder = "output_data";
+    std::string baseName = std::filesystem::path(filename).stem().string();
+    std::string extension = std::filesystem::path(filename).extension().string();
+
+    std::filesystem::create_directories(folder);
+
+    std::string finalPath;
+    int counter = 1;
+
+    do {
+        finalPath = (folder / (baseName + "_" + std::to_string(counter) + extension)).string();
+        counter++;
+    } while (std::filesystem::exists(finalPath));
+
+    std::ofstream file(finalPath);
+
     if (!file.is_open()) {
-        std::cerr << "Błąd: Nie udało się otworzyć pliku do zapisu raportu: " << filename << "\n";
+        std::cerr << "Error: cannot open file: " << finalPath << "\n";
         return;
     }
 
-    // Zapisujemy nagłówki kolumn w pliku CSV
-    file << "Time,X,Y,Vx,Vy,Mass,ThrustX,ThrustY\n";
+    file << "Time,X,Y,Vx,Vy,Mass,ThrustX,ThrustY,"
+         << "VerticalError,HorizontalError,"
+         << "VerticalOutput,HorizontalOutput,"
+         << "Kp_v,Ki_v,Kd_v,Kp_h,Ki_h,Kd_h\n";
 
-    // Zapisujemy każdy zarejestrowany krok, używając std::format dla czytelności
-    for (const auto& record : m_history) {
-        file << std::format("{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f}\n",
-                            record.time,
-                            record.state.x, record.state.y,
-                            record.state.vx, record.state.vy,
-                            record.state.mass,
-                            record.cmd.fx, record.cmd.fy);
+    for (const auto& r : m_history) {
+        file << std::format(
+            "{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},"
+            "{:.4f},{:.4f},{:.4f},{:.4f},"
+            "{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f}\n",
+            r.time,
+            r.state.x, r.state.y,
+            r.state.vx, r.state.vy,
+            r.state.mass,
+            r.cmd.fx, r.cmd.fy,
+            r.diagnostics.vertical_error,
+            r.diagnostics.horizontal_error,
+            r.diagnostics.vertical_output,
+            r.diagnostics.horizontal_output,
+            r.diagnostics.vertical_gains.kp,
+            r.diagnostics.vertical_gains.ki,
+            r.diagnostics.vertical_gains.kd,
+            r.diagnostics.horizontal_gains.kp,
+            r.diagnostics.horizontal_gains.ki,
+            r.diagnostics.horizontal_gains.kd);
     }
-    
-    std::cout << "Raport z symulacji został pomyślnie zapisany w pliku: " << filename << "\n";
+
+    std::cout << "Report saved to: " << filename << "\n";
 }

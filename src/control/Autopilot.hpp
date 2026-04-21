@@ -19,13 +19,25 @@ public:
         double target_vy = 0.0; // [m/s]
     };
 
+    struct Diagnostics {
+        double vertical_error   = 0.0;
+        double horizontal_error = 0.0;
+        double vertical_output  = 0.0;
+        double horizontal_output = 0.0;
+        PIDController::Gains vertical_gains;
+        PIDController::Gains horizontal_gains;
+    };
+
     explicit Autopilot(Config config);
 
-    [[nodiscard]] ThrustCommand compute(const State& current_state, double dt) override;
+    [[nodiscard]] ThrustCommand compute(const State& state, double dt) override;
     void reset() override;
 
-public:
+    [[nodiscard]] const Diagnostics& last_diagnostics() const;
+
+private:
     Config m_config;
     PIDController m_vertical_pid;
     PIDController m_horizontal_pid;
+    Diagnostics m_diagnostics;
 };

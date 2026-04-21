@@ -5,6 +5,7 @@
 #include "core/State.hpp"
 #include "physics/PhysicsModel.hpp"
 #include "control/ControlStrategy.hpp"
+#include "control/Autopilot.hpp"
 
 #include <memory>
 #include <functional>
@@ -54,7 +55,9 @@ private:
         double time;
         State state;
         ThrustCommand cmd;
+        Autopilot::Diagnostics diagnostics;
     };
-    std::vector<StepRecord> m_history;
+
+    std::vector<StepRecord> m_history; 
 };
 

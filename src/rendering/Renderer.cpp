@@ -83,7 +83,7 @@ void Renderer::draw(const State& state,
     spacecraft.setOrigin({10.0f, 10.0f});
     spacecraft.setPosition(pos);
     spacecraft.setFillColor(sf::Color{220, 220, 255});
-    spacecraft.setRotation(sf::degrees(180.0f));
+    //spacecraft.setRotation(sf::degrees(180.0f));
     m_window.draw(spacecraft);
 
     // Płomień silnika

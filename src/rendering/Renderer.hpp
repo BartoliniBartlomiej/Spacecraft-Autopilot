@@ -15,14 +15,13 @@ public:
     {
         unsigned int width        = 1024;
         unsigned int height       = 768;
-        float        scale        = 1.0f;   // piksele na metr
-        float        ground_y     = 0.0f;   // wysokość ziemi w metrach
+        float        scale        = 1.0f;   // pixels per meter
+        float        ground_y     = 0.0f;   // ground level in meters
         double       max_thrust   = 15000.0;
     };
 
     explicit Renderer(Config config);
 
-    // Zwraca false gdy użytkownik zamknie okno
     [[nodiscard]] bool is_open() const;
 
     void handle_events();
@@ -39,4 +38,7 @@ private:
     sf::RenderWindow          m_window;
     sf::Font                  m_font;
     std::vector<sf::Vector2f> m_trail;
+    
+    // fast forward mode flag, when true, the simulation runs without frame rate limit
+    bool                      m_fast_forward = false; 
 };

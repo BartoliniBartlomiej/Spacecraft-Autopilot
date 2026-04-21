@@ -225,6 +225,14 @@ Although the PID parameters are constant during the simulation, they can be usef
 
 ---
 
+## Visualization
+
+For visualization of the simulation, I use SFML library. The renderer displays the spacecraft as a simple triangle, with a trajectory trail and a HUD showing current velocity, altitude and other parameters. The visualization runs in real-time alongside the physics simulation, allowing for an intuitive understanding of how the control inputs affect the landing process.
+
+![Sample simulation animation](assets/gif.gif)
+
+---
+
 ## Project Status
 
 | Phase | Status |

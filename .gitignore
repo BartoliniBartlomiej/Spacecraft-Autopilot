@@ -5,3 +5,4 @@ build/
 req.md
 .venv/
 raport.ipynb
+output_data/

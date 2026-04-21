@@ -27,7 +27,19 @@ void Renderer::handle_events() {
     while (const std::optional event = m_window.pollEvent())
     {
         if (event->is<sf::Event::Closed>())
+        {
             m_window.close();
+        }
+        // Obsługa klawiatury dla trybu przyspieszonego (Klawisz F)
+        else if (const auto* keyEvent = event->getIf<sf::Event::KeyPressed>())
+        {
+            if (keyEvent->code == sf::Keyboard::Key::F)
+            {
+                m_fast_forward = !m_fast_forward;
+                
+                m_window.setFramerateLimit(m_fast_forward ? 0 : 60);
+            }
+        }
     }
 }
 
@@ -66,8 +78,6 @@ void Renderer::draw(const State& state,
         static_cast<float>(state.y));
 
     m_trail.push_back(pos);
-    // if (m_trail.size() > 800)
-    //     m_trail.erase(m_trail.begin());
 
     for (size_t i = 1; i < m_trail.size(); ++i)
     {
@@ -83,7 +93,6 @@ void Renderer::draw(const State& state,
     spacecraft.setOrigin({10.0f, 10.0f});
     spacecraft.setPosition(pos);
     spacecraft.setFillColor(sf::Color{220, 220, 255});
-    //spacecraft.setRotation(sf::degrees(180.0f));
     m_window.draw(spacecraft);
 
     // Płomień silnika
@@ -105,7 +114,8 @@ void Renderer::draw(const State& state,
 
     const double speed = std::sqrt(state.vx * state.vx + state.vy * state.vy);
     const double thrust_pct = (cmd.fy / m_config.max_thrust) * 100.0;
-
+    
+    // Zaktualizowany format, zawiera informację o statusie przyspieszenia
     hud.setString(std::format(
         "Time:    {:.1f} s\n"
         "Alt:     {:.1f} m\n"
@@ -113,11 +123,13 @@ void Renderer::draw(const State& state,
         "Vy:      {:.2f} m/s\n"
         "Vx:      {:.2f} m/s\n"
         "Thrust:  {:.1f}%\n"
-        "X drift: {:.1f} m",
-        time, state.y, speed, state.vy, state.vx, thrust_pct, state.x));
+        "X drift: {:.1f} m\n"
+        "Fast FWD: {}",
+        time, state.y, speed, state.vy, state.vx, thrust_pct, state.x,
+        (m_fast_forward ? "ON [Press F]" : "OFF [Press F]")));
 
     m_window.draw(hud);
-
+    
     // Status lądowania
     if (status == SimulationEngine::Status::Landed) {
         sf::Text result{m_font, "SOFT LANDING!", 32};

@@ -6,7 +6,7 @@
 #include <vector>
 #include <memory>
 #include <string>
-#include <chrono> // Biblioteka do pomiaru czasu
+#include <chrono>
 
 #include "core/SimulationEngine.hpp"
 #include "control/Autopilot.hpp"
@@ -14,10 +14,9 @@
 class BatchSimulator {
 public:
     static void runGridSearch(double step, double max_val) {
-        // --- Start pomiaru czasu ---
         auto start_time = std::chrono::high_resolution_clock::now();
 
-        // --- Konfiguracja bazowa ---
+        // Base configuration for the simulation
         SimulationEngine::Config sim_config;
         sim_config.timestep             = 0.01;
         sim_config.time_limit           = 600.0;
@@ -38,7 +37,7 @@ public:
         std::cout << std::format("{:>7} | {:>7} | {:>7} | {:>12}\n", "Kp", "Ki", "Kd", "Result");
         std::cout << std::string(55, '-') << "\n";
 
-        // --- Potrójna pętla parametrów (Grid Search) ---
+        // Grid Search
         for (double kp = 0.0; kp <= max_val; kp += step) {
             for (double ki = 0.0; ki <= max_val; ki += step) {
                 for (double kd = 0.0; kd <= max_val; kd += step) {
@@ -68,14 +67,12 @@ public:
             }
         }
 
-        // --- Koniec pomiaru czasu ---
         auto end_time = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = end_time - start_time;
 
         std::cout << std::string(55, '-') << "\n";
         double rate = (total_runs > 0) ? (static_cast<double>(successes) / total_runs) * 100.0 : 0.0;
         
-        // Podsumowanie z czasem wykonania
         std::cout << std::format("Total Runs:   {}\n", total_runs);
         std::cout << std::format("Successes:    {}\n", successes);
         std::cout << std::format("Success Rate: {:.2f}%\n", rate);

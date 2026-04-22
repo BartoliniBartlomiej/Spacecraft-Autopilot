@@ -18,6 +18,7 @@ public:
     [[nodiscard]] double compute(double error, double dt);
 
     void reset();
+    
 
 private:
     Gains  m_gains;

@@ -24,11 +24,6 @@ double PIDController::compute(double error, double dt) {
 
     double output = std::clamp(p + i + d, m_output_min, m_output_max);
 
-    // // TYMCZASOWY DEBUG
-    // std::cout << "  kp=" << m_gains.kp << " p=" << p
-    //           << " min=" << m_output_min << " max=" << m_output_max
-    //           << " out=" << output << "\n";
-
     return output;
 }
 

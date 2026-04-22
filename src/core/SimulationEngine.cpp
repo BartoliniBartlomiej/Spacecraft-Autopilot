@@ -33,13 +33,12 @@ SimulationEngine::Status SimulationEngine::run(State initial_state) {
 SimulationEngine::Status SimulationEngine::step(State& state, double& time) {
     const ThrustCommand cmd = m_autopilot->compute(state, m_config.timestep);
 
-    // Save step data for reporting
-    Autopilot::Diagnostics diag;
-    if (auto* ap = dynamic_cast<Autopilot*>(m_autopilot.get()))
-        diag = ap->last_diagnostics();
+    ControlDiagnostics diag;
+    if (auto opt = m_autopilot->last_diagnostics(); opt.has_value())
+        diag = *opt;
 
     m_history.push_back({time, state, cmd, diag});
-    
+
     state = integrate(state, cmd);
     time += m_config.timestep;
 
@@ -136,7 +135,7 @@ void SimulationEngine::saveReport(const std::string& filename) const {
         return;
     }
 
-    file << "Time,X,Y,Vx,Vy,Mass,ThrustX,ThrustY,"
+    file << "Chuj,X,Y,Vx,Vy,Mass,ThrustX,ThrustY,"
          << "VerticalError,HorizontalError,"
          << "VerticalOutput,HorizontalOutput,"
          << "Kp_v,Ki_v,Kd_v,Kp_h,Ki_h,Kd_h\n";
@@ -147,7 +146,7 @@ void SimulationEngine::saveReport(const std::string& filename) const {
             file << std::format(
             "{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},"
             "{:.4f},{:.4f},{:.4f},{:.4f},"
-            "{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f}\n",
+            "\n",
             r.time,
             r.state.x, r.state.y,
             r.state.vx, r.state.vy,
@@ -156,13 +155,7 @@ void SimulationEngine::saveReport(const std::string& filename) const {
             r.diagnostics.vertical_error,
             r.diagnostics.horizontal_error,
             r.diagnostics.vertical_output,
-            r.diagnostics.horizontal_output,
-            r.diagnostics.vertical_gains.kp,
-            r.diagnostics.vertical_gains.ki,
-            r.diagnostics.vertical_gains.kd,
-            r.diagnostics.horizontal_gains.kp,
-            r.diagnostics.horizontal_gains.ki,
-            r.diagnostics.horizontal_gains.kd);
+            r.diagnostics.horizontal_output);
         }
         i++;
     }
@@ -183,12 +176,12 @@ void SimulationEngine::saveReport(const std::string& filename) const {
     }
 
     if (!fileExists) {
-        config_file << "filename,status,mass,initial_x,initial_y,initial_vx,initial_vy,Kp_v,Ki_v,Kd_v,Kp_h,Ki_h,Kd_h\n";
+        config_file << "filename,status,mass,initial_x,initial_y,initial_vx,initial_vy,Kp_v,Ki_v,Kd_v,Kp_h,Ki_h,Kd_h,Time\n";
     }
 
     if (!m_history.empty()) {
         const auto& r = m_history.front();
-        config_file << std::format("{},{},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f}\n",
+        config_file << std::format("{},{},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f}\n",
             finalPath,
             statusToString(m_lastStatus),
             r.state.mass,
@@ -201,7 +194,8 @@ void SimulationEngine::saveReport(const std::string& filename) const {
             r.diagnostics.vertical_gains.kd,
             r.diagnostics.horizontal_gains.kp,
             r.diagnostics.horizontal_gains.ki,
-            r.diagnostics.horizontal_gains.kd);
+            r.diagnostics.horizontal_gains.kd,
+            m_history.back().time);
     }
 
     config_file.close();

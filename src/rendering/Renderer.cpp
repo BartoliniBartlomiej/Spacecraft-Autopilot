@@ -9,9 +9,8 @@ Renderer::Renderer(Config config)
     , m_window{sf::VideoMode{{config.width, config.height}}, "Spacecraft Autopilot"} {
     m_window.setFramerateLimit(60);
     
-    // TYMCZASOWY DEBUG
-    std::cout << "Window created, isOpen: " << m_window.isOpen() << "\n";
-    std::cout << "Window size: " << m_window.getSize().x << "x" << m_window.getSize().y << "\n";
+    // std::cout << "Window created, isOpen: " << m_window.isOpen() << "\n";
+    // std::cout << "Window size: " << m_window.getSize().x << "x" << m_window.getSize().y << "\n";
     
     if (!m_font.openFromFile("/System/Library/Fonts/Helvetica.ttc"))
     {

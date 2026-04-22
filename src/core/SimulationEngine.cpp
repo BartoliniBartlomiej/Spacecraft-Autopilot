@@ -15,8 +15,7 @@ SimulationEngine::SimulationEngine(Config config,
     m_physics{physics}
 {}
 
-SimulationEngine::Status SimulationEngine::run(State initial_state)
-{
+SimulationEngine::Status SimulationEngine::run(State initial_state) {
     m_history.clear();
 
     State  state  = initial_state;
@@ -26,11 +25,12 @@ SimulationEngine::Status SimulationEngine::run(State initial_state)
     while (status == Status::Running)
         status = step(state, time);
 
+    m_lastStatus = status;
+
     return status;
 }
 
-SimulationEngine::Status SimulationEngine::step(State& state, double& time)
-{
+SimulationEngine::Status SimulationEngine::step(State& state, double& time) {
     const ThrustCommand cmd = m_autopilot->compute(state, m_config.timestep);
 
     // Save step data for reporting
@@ -113,7 +113,7 @@ State SimulationEngine::integrate(const State& state, const ThrustCommand& cmd) 
     return next;
 }
 
-void SimulationEngine::saveRaport(const std::string& filename) const {
+void SimulationEngine::saveReport(const std::string& filename) const {
 
     std::filesystem::path folder = "output_data";
     std::string baseName = std::filesystem::path(filename).stem().string();
@@ -141,8 +141,10 @@ void SimulationEngine::saveRaport(const std::string& filename) const {
          << "VerticalOutput,HorizontalOutput,"
          << "Kp_v,Ki_v,Kd_v,Kp_h,Ki_h,Kd_h\n";
 
+    int i = 10;
     for (const auto& r : m_history) {
-        file << std::format(
+        if (i % 10 == 0) { // log every 10th step to reduce file size
+            file << std::format(
             "{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},"
             "{:.4f},{:.4f},{:.4f},{:.4f},"
             "{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f}\n",
@@ -161,7 +163,49 @@ void SimulationEngine::saveRaport(const std::string& filename) const {
             r.diagnostics.horizontal_gains.kp,
             r.diagnostics.horizontal_gains.ki,
             r.diagnostics.horizontal_gains.kd);
+        }
+        i++;
     }
 
-    std::cout << "Report saved to: " << filename << "\n";
+    std::cout << "Report saved to: " << finalPath << "\n";
+    // std::string finalPath = "-";
+
+    // Multisimulation config's file
+    std::string config_filepath = "output_data/configurations.csv";
+    bool fileExists = std::filesystem::exists(config_filepath);
+
+    std::ofstream config_file(config_filepath, std::ios::app); // append mode
+
+    if (!config_file.is_open())
+    {
+        std::cerr << "Error: cannot open file: " << config_filepath << "\n";
+        return;
+    }
+
+    if (!fileExists) {
+        config_file << "filename,status,mass,initial_x,initial_y,initial_vx,initial_vy,Kp_v,Ki_v,Kd_v,Kp_h,Ki_h,Kd_h\n";
+    }
+
+    if (!m_history.empty()) {
+        const auto& r = m_history.front();
+        config_file << std::format("{},{},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f},{:.2f}\n",
+            finalPath,
+            statusToString(m_lastStatus),
+            r.state.mass,
+            r.state.x,
+            r.state.y,
+            r.state.vx,
+            r.state.vy,
+            r.diagnostics.vertical_gains.kp,
+            r.diagnostics.vertical_gains.ki,
+            r.diagnostics.vertical_gains.kd,
+            r.diagnostics.horizontal_gains.kp,
+            r.diagnostics.horizontal_gains.ki,
+            r.diagnostics.horizontal_gains.kd);
+    }
+
+    config_file.close();
+    std::cout << "Configuration logged to: " << config_filepath << "\n";
+
 }
+

@@ -2,18 +2,21 @@
 #include <format>
 #include "core/SimulationEngine.hpp"
 #include "control/Autopilot.hpp"
+#include "multisimulation/BatchSimulation.hpp"
 
 #ifdef ENABLE_RENDERING
 #include "rendering/Renderer.hpp"
 #endif
 
+
+
 int main()
 {
     // --- Choice Menu ---
     std::cout << "--- Spacecraft Autopilot ---\n";
-    std::cout << "1. Bez wizualizacji (logi w konsoli)\n";
-    std::cout << "2. Z wizualizacja (okno SFML)\n";
-    std::cout << "Wybierz opcje (1/2): ";
+    std::cout << "1. No Visualization\n";
+    std::cout << "2. With Visualization (SFML Window)\n";
+    std::cout << "Choose option (1/2): ";
     
     int choice = 1;
     std::cin >> choice;
@@ -33,8 +36,8 @@ int main()
 
     // --- Simulation Configuration ---
     Autopilot::Config autopilot_config;
-    autopilot_config.vertical_gains   = {.kp = 1000.0, .ki = 0.5, .kd = 30.0};
-    autopilot_config.horizontal_gains = {.kp = 1.0,  .ki = 0.0, .kd = 0.5};
+    autopilot_config.vertical_gains   = {.kp = 50.0, .ki = 0.2, .kd = 0.5}; // soft landing -> {.kp = 50.0, .ki = 0.2, .kd = 0.5}
+    autopilot_config.horizontal_gains = {.kp = 10.0,  .ki = 0.5, .kd = 0.5};
     autopilot_config.max_thrust       = 15000.0;
     autopilot_config.target_vy        = -1.5;
     autopilot_config.target_x         = 0.0;
@@ -51,9 +54,9 @@ int main()
     };
 
     State initial;
-    initial.x    =  50.0;
+    initial.x    =  0.0;
     initial.y    = 500.0;
-    initial.vx   =  2.0;
+    initial.vx   =  0.0;
     initial.vy   = -50.0;
     initial.mass =  500.0;
 
@@ -108,7 +111,7 @@ int main()
             {
                 const double thrust_pct = (cmd.fy / autopilot_config.max_thrust) * 100.0;
                 std::cout << std::format(
-                    "t={:6.1f}s  y={:7.1f}m  vy={:6.2f}m/s  x={:6.1f}m  vx={:5.2f}m/s  thrust={:5.1f}%\n",
+                    "t={:6.3f}s  y={:7.1f}m  vy={:6.2f}m/s  x={:6.1f}m  vx={:5.2f}m/s  thrust={:5.1f}%\n",
                     time, s.y, s.vy, s.x, s.vx, thrust_pct);
                 last_log = time;
             }
@@ -131,7 +134,16 @@ int main()
     }
 
     // Save simulation history to CSV
-    engine.saveRaport("raport.csv");
-
+    // engine.saveReport("report.csv");
+    // printLastLine("output_data/report_13.csv");
     return 0;
 }
+
+// int main() 
+// {
+//     // Wywołanie: zmiana (step) = 10.0, wartość maksymalna = 100.0
+//     // To sprawdzi kombinacje (0,0,0), (0,0,10) ... (100,100,100)
+//     BatchSimulator::runGridSearch(5.0, 100.0);
+
+//     return 0;
+// }

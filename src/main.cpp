@@ -36,7 +36,7 @@ int main()
 
     // --- Simulation Configuration ---
     Autopilot::Config autopilot_config;
-    autopilot_config.vertical_gains   = {.kp = 50.0, .ki = 0.2, .kd = 0.5}; // soft landing -> {.kp = 50.0, .ki = 0.2, .kd = 0.5}
+    autopilot_config.vertical_gains   = {.kp = 69.0, .ki = 0.2, .kd = 0.5}; // soft landing -> {.kp = 50.0, .ki = 0.2, .kd = 0.5}
     autopilot_config.horizontal_gains = {.kp = 10.0,  .ki = 0.5, .kd = 0.5};
     autopilot_config.max_thrust       = 15000.0;
     autopilot_config.target_vy        = -1.5;
@@ -134,7 +134,7 @@ int main()
     }
 
     // Save simulation history to CSV
-    // engine.saveReport("report.csv");
+    engine.saveReport("report.csv");
     // printLastLine("output_data/report_13.csv");
     return 0;
 }

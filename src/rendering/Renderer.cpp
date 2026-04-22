@@ -43,8 +43,7 @@ void Renderer::handle_events() {
 }
 
 sf::Vector2f Renderer::world_to_screen(float x, float y) const {
-    // Środek ekranu to x=0 w świecie
-    // Y jest odwrócone — w SFML y rośnie w dół
+
     const float screen_x = static_cast<float>(m_config.width)  / 2.0f + x * m_config.scale;
     const float screen_y = static_cast<float>(m_config.height) * 0.85f - y * m_config.scale;
     return {screen_x, screen_y};
@@ -56,14 +55,14 @@ void Renderer::draw(const State& state,
                     SimulationEngine::Status status) {
     m_window.clear(sf::Color{15, 15, 25});
 
-    // Ziemia
+    // Ground
     const float ground_screen_y = world_to_screen(0.0f, 0.0f).y;
     sf::RectangleShape ground{{static_cast<float>(m_config.width), 40.0f}};
     ground.setPosition({0.0f, ground_screen_y});
     ground.setFillColor(sf::Color{50, 120, 50});
     m_window.draw(ground);
 
-    // Strefa lądowania
+    // Landing zone
     const sf::Vector2f landing_pos = world_to_screen(0.0f, 0.0f);
     sf::RectangleShape landing_zone{{60.0f, 6.0f}};
     landing_zone.setOrigin({30.0f, 3.0f});
@@ -71,7 +70,7 @@ void Renderer::draw(const State& state,
     landing_zone.setFillColor(sf::Color{220, 180, 0});
     m_window.draw(landing_zone);
 
-    // Trajektoria
+    // Trajectory
     const sf::Vector2f pos = world_to_screen(
         static_cast<float>(state.x),
         static_cast<float>(state.y));
@@ -87,14 +86,14 @@ void Renderer::draw(const State& state,
         m_window.draw(line, 2, sf::PrimitiveType::Lines);
     }
 
-    // Spacecraft — trójkąt
+    // Spacecraft — triangle
     sf::CircleShape spacecraft{10.0f, 3};
     spacecraft.setOrigin({10.0f, 10.0f});
     spacecraft.setPosition(pos);
     spacecraft.setFillColor(sf::Color{220, 220, 255});
     m_window.draw(spacecraft);
 
-    // Płomień silnika
+    // Thruster flame
     const double thrust_ratio = cmd.fy / m_config.max_thrust;
     if (thrust_ratio > 0.05)
     {
@@ -106,7 +105,7 @@ void Renderer::draw(const State& state,
         m_window.draw(flame);
     }
 
-    // HUD — tekst
+    // HUD 
     sf::Text hud{m_font, "", 14};
     hud.setFillColor(sf::Color::White);
     hud.setPosition({10.0f, 10.0f});
@@ -114,7 +113,6 @@ void Renderer::draw(const State& state,
     const double speed = std::sqrt(state.vx * state.vx + state.vy * state.vy);
     const double thrust_pct = (cmd.fy / m_config.max_thrust) * 100.0;
     
-    // Zaktualizowany format, zawiera informację o statusie przyspieszenia
     hud.setString(std::format(
         "Time:    {:.1f} s\n"
         "Alt:     {:.1f} m\n"
@@ -129,7 +127,7 @@ void Renderer::draw(const State& state,
 
     m_window.draw(hud);
     
-    // Status lądowania
+    // Status message
     if (status == SimulationEngine::Status::Landed) {
         sf::Text result{m_font, "SOFT LANDING!", 32};
         result.setFillColor(sf::Color{0, 255, 100});

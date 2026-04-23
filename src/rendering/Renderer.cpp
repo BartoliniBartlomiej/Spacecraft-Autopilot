@@ -12,8 +12,8 @@ Renderer::Renderer(Config config)
     // std::cout << "Window created, isOpen: " << m_window.isOpen() << "\n";
     // std::cout << "Window size: " << m_window.getSize().x << "x" << m_window.getSize().y << "\n";
     
-    if (!m_font.openFromFile("/System/Library/Fonts/Helvetica.ttc"))
     {
+    if (!m_font.openFromFile("/System/Library/Fonts/Helvetica.ttc"))
         std::cout << "Font failed to load\n";
     }
 }
@@ -117,12 +117,13 @@ void Renderer::draw(const State& state,
         "Time:    {:.1f} s\n"
         "Alt:     {:.1f} m\n"
         "Speed:   {:.2f} m/s\n"
+        "Mass:   {:.2f} kg\n"
         "Vy:      {:.2f} m/s\n"
         "Vx:      {:.2f} m/s\n"
         "Thrust:  {:.1f}%\n"
         "X drift: {:.1f} m\n"
         "Fast FWD: {}",
-        time, state.y, speed, state.vy, state.vx, thrust_pct, state.x,
+        time, state.y, speed, state.mass, state.vy, state.vx, thrust_pct, state.x,
         (m_fast_forward ? "ON [Press F]" : "OFF [Press F]")));
 
     m_window.draw(hud);
@@ -141,6 +142,13 @@ void Renderer::draw(const State& state,
         result.setFillColor(sf::Color{255, 50, 50});
         result.setPosition({
             static_cast<float>(m_config.width)  / 2.0f - 80.0f,
+            static_cast<float>(m_config.height) / 2.0f});
+        m_window.draw(result);
+    } else if (status == SimulationEngine::Status::FuelExhausted) {
+        sf::Text result{m_font, "FUEL EXHAUSTED!", 32};
+        result.setFillColor(sf::Color{255, 200, 50});
+        result.setPosition({
+            static_cast<float>(m_config.width)  / 2.0f - 120.0f,
             static_cast<float>(m_config.height) / 2.0f});
         m_window.draw(result);
     }

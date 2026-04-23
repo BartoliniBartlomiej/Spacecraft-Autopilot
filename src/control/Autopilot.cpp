@@ -11,6 +11,10 @@ Autopilot::Autopilot(Config config)
 {}
 
 ThrustCommand Autopilot::compute(const State& state, double dt) {
+    if (state.mass <= 300.0) {
+        return {0.0, 0.0};
+    }
+
     const double vertical_error   = m_config.target_vy - state.vy;
     const double horizontal_error = m_config.target_x  - state.x;
     const double gravity_compensation = 9.81 * state.mass;

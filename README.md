@@ -14,6 +14,7 @@ Built as a portfolio project demonstrating clean architecture, modern C++ practi
 - **RK4 integrator** — Runge-Kutta 4th order numerical integration
 - **PID autopilot** — dual-axis controller for vertical descent and horizontal stabilization
 - **Data Logging** - CSV output of time, position, velocity, and control commands for post-simulation analysis
+- **Multiple Simulations Mode** — run multiple simulation using `BatchSimulation` for automated syntethic data generation  
 - **Extensible control interface** — `ControlStrategy` abstraction allows plugging in LQR, MPC, or any custom algorithm
 - **Unit tested** — GoogleTest coverage for physics, PID controller, and autopilot logic
 - **CI pipeline** — GitHub Actions builds and runs all tests on every push

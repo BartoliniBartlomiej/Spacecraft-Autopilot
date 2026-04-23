@@ -16,6 +16,7 @@ set(SOURCES
     src/physics/PhysicsModel.cpp
     src/control/PIDController.cpp
     src/control/Autopilot.cpp
+    src/services/DataLogger.cpp
 )
 
 if(ENABLE_RENDERING)

@@ -3,6 +3,7 @@
 #include "core/SimulationEngine.hpp"
 #include "control/Autopilot.hpp"
 #include "multisimulation/BatchSimulation.hpp"
+#include "services/DataLogger.hpp"
 
 #ifdef ENABLE_RENDERING
 #include "rendering/Renderer.hpp"
@@ -36,10 +37,10 @@ int main()
 
     // --- Simulation Configuration ---
     Autopilot::Config autopilot_config;
-    autopilot_config.vertical_gains   = {.kp = 69.0, .ki = 0.2, .kd = 0.5}; // soft landing -> {.kp = 50.0, .ki = 0.2, .kd = 0.5}
-    autopilot_config.horizontal_gains = {.kp = 10.0,  .ki = 0.5, .kd = 0.5};
+    autopilot_config.vertical_gains   = {.kp = 5000.0, .ki = 0.2, .kd = 1.5}; // soft landing -> {.kp = 50.0, .ki = 0.2, .kd = 0.5}
+    autopilot_config.horizontal_gains = {.kp = 1000.0,  .ki = 2.0, .kd = 100.0};
     autopilot_config.max_thrust       = 15000.0;
-    autopilot_config.target_vy        = -1.5;
+    autopilot_config.target_vy        = 1000;
     autopilot_config.target_x         = 0.0;
 
     SimulationEngine::Config sim_config;
@@ -55,9 +56,9 @@ int main()
 
     State initial;
     initial.x    =  0.0;
-    initial.y    = 500.0;
-    initial.vx   =  0.0;
-    initial.vy   = -50.0;
+    initial.y    = 0.0;
+    initial.vx   =  0;
+    initial.vy   = 0.0;
     initial.mass =  500.0;
 
     SimulationEngine::Status result;
@@ -134,15 +135,14 @@ int main()
     }
 
     // Save simulation history to CSV
-    engine.saveReport("report.csv");
-    // printLastLine("output_data/report_13.csv");
+    DataLogger logger;
+    logger.saveReport("report.csv", engine, false);
+
     return 0;
 }
 
 // int main() 
 // {
-//     // Wywołanie: zmiana (step) = 10.0, wartość maksymalna = 100.0
-//     // To sprawdzi kombinacje (0,0,0), (0,0,10) ... (100,100,100)
 //     BatchSimulator::runGridSearch(5.0, 100.0);
 
 //     return 0;

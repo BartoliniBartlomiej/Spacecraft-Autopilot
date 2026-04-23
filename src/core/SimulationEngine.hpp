@@ -1,4 +1,5 @@
 // src/core/SimulationEngine.hpp
+
 #pragma once
 
 #include "core/State.hpp"
@@ -28,6 +29,13 @@ public:
         TimeLimitReached
     };
 
+    struct StepRecord {
+        double             time;
+        State              state;
+        ThrustCommand      cmd;
+        ControlDiagnostics diagnostics;
+    };
+
     using StepCallback = std::function<void(const State&,
                                             const ThrustCommand&,
                                             double time,
@@ -41,25 +49,16 @@ public:
     Status step(State& state, double& time);
 
     void set_step_callback(StepCallback callback);
-    void saveReport(const std::string& filename, bool dontSaveReport = false) const;
+    
+    // void saveReport(const std::string& filename, bool dontSaveReport = false) const;
+    
+    const std::vector<StepRecord>& getHistory() const {
+        return m_history;
+    }
 
-private:
-    [[nodiscard]] Status check_status(const State& state) const;
-    [[nodiscard]] State  integrate(const State& state, const ThrustCommand& cmd) const;
-
-    struct StepRecord {
-        double             time;
-        State              state;
-        ThrustCommand      cmd;
-        ControlDiagnostics diagnostics;
-    };
-
-    Config                           m_config;
-    std::unique_ptr<ControlStrategy> m_autopilot;
-    PhysicsModel                     m_physics;
-    StepCallback                     m_callback;
-    Status                           m_lastStatus = Status::Running;
-    std::vector<StepRecord>          m_history;
+    Status getStatus() const {
+        return m_lastStatus;
+    }
 
     std::string statusToString(SimulationEngine::Status status) const {
         switch (status) {
@@ -71,4 +70,15 @@ private:
             default:                                            return "Unknown";
         }
     }
+
+private:
+    [[nodiscard]] Status check_status(const State& state) const;
+    [[nodiscard]] State  integrate(const State& state, const ThrustCommand& cmd) const;
+
+    Config                           m_config;
+    std::unique_ptr<ControlStrategy> m_autopilot;
+    PhysicsModel                     m_physics;
+    StepCallback                     m_callback;
+    Status                           m_lastStatus = Status::Running;
+    std::vector<StepRecord>          m_history;
 };

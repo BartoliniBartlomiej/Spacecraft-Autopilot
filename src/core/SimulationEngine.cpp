@@ -2,10 +2,7 @@
 
 #include "core/SimulationEngine.hpp"
 #include <cmath>
-#include <iostream>
-#include <fstream>
-#include <format>
-#include <filesystem>
+
 
 SimulationEngine::SimulationEngine(Config config,
                                    std::unique_ptr<ControlStrategy> autopilot,

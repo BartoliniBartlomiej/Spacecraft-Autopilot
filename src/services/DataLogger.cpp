@@ -2,6 +2,11 @@
 
 #include "services/DataLogger.hpp"
 
+#include <iostream>
+#include <fstream>
+#include <filesystem>
+#include <format>
+
 
 void DataLogger::saveReport(const std::string& filename, SimulationEngine& engine, bool dontSaveReport) const {
     std::string finalPath = "-";

@@ -3,9 +3,6 @@
 #pragma once
 
 #include <string>
-#include <iostream>
-#include <fstream>
-
 #include "core/SimulationEngine.hpp"
 
 class DataLogger {

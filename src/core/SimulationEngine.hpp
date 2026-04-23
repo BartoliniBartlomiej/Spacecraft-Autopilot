@@ -41,12 +41,11 @@ public:
     Status step(State& state, double& time);
 
     void set_step_callback(StepCallback callback);
-    void saveReport(const std::string& filename) const;
+    void saveReport(const std::string& filename, bool dontSaveReport = false) const;
 
 private:
     [[nodiscard]] Status check_status(const State& state) const;
     [[nodiscard]] State  integrate(const State& state, const ThrustCommand& cmd) const;
-    // [[nodiscard]] std::string statusToString(Status status) const;
 
     struct StepRecord {
         double             time;
@@ -64,12 +63,12 @@ private:
 
     std::string statusToString(SimulationEngine::Status status) const {
         switch (status) {
-            case SimulationEngine::Status::Running:       return "Running";
-            case SimulationEngine::Status::Landed:        return "Landed";
-            case SimulationEngine::Status::Crashed:       return "Crashed";
-            case SimulationEngine::Status::FuelExhausted: return "FuelExhausted";
-            case SimulationEngine::Status::TimeLimitReached: return "TimeLimitReached";
-            default:                                      return "Unknown";
+            case SimulationEngine::Status::Running:             return "Running";
+            case SimulationEngine::Status::Landed:              return "Landed";
+            case SimulationEngine::Status::Crashed:             return "Crashed";
+            case SimulationEngine::Status::FuelExhausted:       return "FuelExhausted";
+            case SimulationEngine::Status::TimeLimitReached:    return "TimeLimitReached";
+            default:                                            return "Unknown";
         }
     }
 };

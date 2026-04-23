@@ -59,7 +59,7 @@ void SimulationEngine::set_step_callback(StepCallback callback) {
 
 SimulationEngine::Status SimulationEngine::check_status(const State& state) const {
     // Time limit reached
-    if (state.mass <= 0.0)
+    if (state.mass <= 300.0)
         return Status::FuelExhausted;
 
     // Eagle (Spacecraft) has landed 
@@ -87,6 +87,7 @@ State SimulationEngine::integrate(const State& state, const ThrustCommand& cmd) 
     s2.y  += k1.y  * dt / 2.0;
     s2.vx += k1.vx * dt / 2.0;
     s2.vy += k1.vy * dt / 2.0;
+    s2.mass += k1.mass * dt / 2.0;
     const State k2 = m_physics.derivative(s2, cmd);
 
     State s3 = state;
@@ -94,6 +95,7 @@ State SimulationEngine::integrate(const State& state, const ThrustCommand& cmd) 
     s3.y  += k2.y  * dt / 2.0;
     s3.vx += k2.vx * dt / 2.0;
     s3.vy += k2.vy * dt / 2.0;
+    s3.mass += k2.mass * dt / 2.0;
     const State k3 = m_physics.derivative(s3, cmd);
 
     State s4 = state;
@@ -101,6 +103,7 @@ State SimulationEngine::integrate(const State& state, const ThrustCommand& cmd) 
     s4.y  += k3.y  * dt;
     s4.vx += k3.vx * dt;
     s4.vy += k3.vy * dt;
+    s4.mass += k3.mass * dt;
     const State k4 = m_physics.derivative(s4, cmd);
 
     State next = state;
@@ -108,60 +111,66 @@ State SimulationEngine::integrate(const State& state, const ThrustCommand& cmd) 
     next.y  += (k1.y  + 2*k2.y  + 2*k3.y  + k4.y)  * dt / 6.0;
     next.vx += (k1.vx + 2*k2.vx + 2*k3.vx + k4.vx) * dt / 6.0;
     next.vy += (k1.vy + 2*k2.vy + 2*k3.vy + k4.vy) * dt / 6.0;
+    next.mass += (k1.mass + 2*k2.mass + 2*k3.mass + k4.mass) * dt / 6.0;
 
     return next;
 }
 
-void SimulationEngine::saveReport(const std::string& filename) const {
+void SimulationEngine::saveReport(const std::string& filename, bool dontSaveReport) const {
+    
+    std::string finalPath = "-";
 
-    std::filesystem::path folder = "output_data";
-    std::string baseName = std::filesystem::path(filename).stem().string();
-    std::string extension = std::filesystem::path(filename).extension().string();
+    if (dontSaveReport) {
+        std::cout << "Report saving skipped (dontSaveReport=true).\n";
+    } else {
+        std::filesystem::path folder = "output_data";
+        std::string baseName = std::filesystem::path(filename).stem().string();
+        std::string extension = std::filesystem::path(filename).extension().string();
 
-    std::filesystem::create_directories(folder);
+        std::filesystem::create_directories(folder);
 
-    std::string finalPath;
-    int counter = 1;
+        // std::string finalPath;
+        int counter = 1;
 
-    do {
-        finalPath = (folder / (baseName + "_" + std::to_string(counter) + extension)).string();
-        counter++;
-    } while (std::filesystem::exists(finalPath));
+        do {
+            finalPath = (folder / (baseName + "_" + std::to_string(counter) + extension)).string();
+            counter++;
+        } while (std::filesystem::exists(finalPath));
 
-    std::ofstream file(finalPath);
+        std::ofstream file(finalPath);
 
-    if (!file.is_open()) {
-        std::cerr << "Error: cannot open file: " << finalPath << "\n";
-        return;
-    }
-
-    file << "Chuj,X,Y,Vx,Vy,Mass,ThrustX,ThrustY,"
-         << "VerticalError,HorizontalError,"
-         << "VerticalOutput,HorizontalOutput,"
-         << "Kp_v,Ki_v,Kd_v,Kp_h,Ki_h,Kd_h\n";
-
-    int i = 10;
-    for (const auto& r : m_history) {
-        if (i % 10 == 0) { // log every 10th step to reduce file size
-            file << std::format(
-            "{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},"
-            "{:.4f},{:.4f},{:.4f},{:.4f},"
-            "\n",
-            r.time,
-            r.state.x, r.state.y,
-            r.state.vx, r.state.vy,
-            r.state.mass,
-            r.cmd.fx, r.cmd.fy,
-            r.diagnostics.vertical_error,
-            r.diagnostics.horizontal_error,
-            r.diagnostics.vertical_output,
-            r.diagnostics.horizontal_output);
+        if (!file.is_open()) {
+            std::cerr << "Error: cannot open file: " << finalPath << "\n";
+            return;
         }
-        i++;
-    }
 
-    std::cout << "Report saved to: " << finalPath << "\n";
-    // std::string finalPath = "-";
+        file << "Chuj,X,Y,Vx,Vy,Mass,ThrustX,ThrustY,"
+            << "VerticalError,HorizontalError,"
+            << "VerticalOutput,HorizontalOutput,"
+            << "Kp_v,Ki_v,Kd_v,Kp_h,Ki_h,Kd_h\n";
+
+        int i = 10;
+        for (const auto& r : m_history) {
+            if (i % 10 == 0) { // log every 10th step to reduce file size
+                file << std::format(
+                "{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},{:.4f},"
+                "{:.4f},{:.4f},{:.4f},{:.4f},"
+                "\n",
+                r.time,
+                r.state.x, r.state.y,
+                r.state.vx, r.state.vy,
+                r.state.mass,
+                r.cmd.fx, r.cmd.fy,
+                r.diagnostics.vertical_error,
+                r.diagnostics.horizontal_error,
+                r.diagnostics.vertical_output,
+                r.diagnostics.horizontal_output);
+            }
+            i++;
+        }
+
+        std::cout << "Report saved to: " << finalPath << "\n";
+    }
 
     // Multisimulation config's file
     std::string config_filepath = "output_data/configurations.csv";

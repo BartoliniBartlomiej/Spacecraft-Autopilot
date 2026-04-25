@@ -26,7 +26,7 @@ State PhysicsModel::derivative(const State& s, const ThrustCommand& cmd) const {
     double total_thrust = std::sqrt(cmd.fx * cmd.fx + cmd.fy * cmd.fy);
     
     // Mass decreases only if there's significant thrust and we have fuel left
-    if (s.mass > 300.0) { // dry mass
+    if (s.mass > s.dryMass) { // dry mass
         deriv.mass = -fuel_consumption_rate * total_thrust;
     } else {
         deriv.mass = 0.0;

@@ -38,7 +38,7 @@ void DataLogger::saveReport(const std::string& filename, SimulationEngine& engin
         file << "time,X,Y,Vx,Vy,Mass,ThrustX,ThrustY,"
             << "VerticalError,HorizontalError,"
             << "VerticalOutput,HorizontalOutput,"
-            << "Kp_v,Ki_v,Kd_v,Kp_h,Ki_h,Kd_h\n";
+            << "\n";
 
         int i = 10;
         for (const auto& r : engine.getHistory()) {

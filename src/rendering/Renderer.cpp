@@ -9,9 +9,6 @@ Renderer::Renderer(Config config)
     , m_window{sf::VideoMode{{config.width, config.height}}, "Spacecraft Autopilot"} {
     m_window.setFramerateLimit(60);
     
-    // std::cout << "Window created, isOpen: " << m_window.isOpen() << "\n";
-    // std::cout << "Window size: " << m_window.getSize().x << "x" << m_window.getSize().y << "\n";
-    
     {
     if (!m_font.openFromFile("/System/Library/Fonts/Helvetica.ttc"))
         std::cout << "Font failed to load\n";
@@ -29,7 +26,6 @@ void Renderer::handle_events() {
         {
             m_window.close();
         }
-        // Obsługa klawiatury dla trybu przyspieszonego (Klawisz F)
         else if (const auto* keyEvent = event->getIf<sf::Event::KeyPressed>())
         {
             if (keyEvent->code == sf::Keyboard::Key::F)

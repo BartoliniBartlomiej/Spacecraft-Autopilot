@@ -56,7 +56,7 @@ void SimulationEngine::set_step_callback(StepCallback callback) {
 
 SimulationEngine::Status SimulationEngine::check_status(const State& state) const {
     // Time limit reached
-    if (state.mass <= 300.0)
+    if (state.mass <= state.dryMass)
         return Status::FuelExhausted;
 
     // Eagle (Spacecraft) has landed 
@@ -113,3 +113,13 @@ State SimulationEngine::integrate(const State& state, const ThrustCommand& cmd) 
     return next;
 }
 
+std::string SimulationEngine::statusToString(SimulationEngine::Status status) const {
+        switch (status) {
+            case SimulationEngine::Status::Running:             return "Running";
+            case SimulationEngine::Status::Landed:              return "Landed";
+            case SimulationEngine::Status::Crashed:             return "Crashed";
+            case SimulationEngine::Status::FuelExhausted:       return "FuelExhausted";
+            case SimulationEngine::Status::TimeLimitReached:    return "TimeLimitReached";
+            default:                                            return "Unknown";
+        }
+    }

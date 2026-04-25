@@ -60,16 +60,7 @@ public:
         return m_lastStatus;
     }
 
-    std::string statusToString(SimulationEngine::Status status) const {
-        switch (status) {
-            case SimulationEngine::Status::Running:             return "Running";
-            case SimulationEngine::Status::Landed:              return "Landed";
-            case SimulationEngine::Status::Crashed:             return "Crashed";
-            case SimulationEngine::Status::FuelExhausted:       return "FuelExhausted";
-            case SimulationEngine::Status::TimeLimitReached:    return "TimeLimitReached";
-            default:                                            return "Unknown";
-        }
-    }
+    std::string statusToString(SimulationEngine::Status status) const;
 
 private:
     [[nodiscard]] Status check_status(const State& state) const;

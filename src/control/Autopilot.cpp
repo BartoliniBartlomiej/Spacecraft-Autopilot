@@ -11,7 +11,7 @@ Autopilot::Autopilot(Config config)
 {}
 
 ThrustCommand Autopilot::compute(const State& state, double dt) {
-    if (state.mass <= 300.0) {
+    if (state.mass <= state.dryMass) {
         return {0.0, 0.0};
     }
 

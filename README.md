@@ -19,7 +19,6 @@ Built as a portfolio project demonstrating clean architecture, modern C++ practi
 - **Unit tested** — GoogleTest coverage for physics, PID controller, and autopilot logic
 - **CI pipeline** — GitHub Actions builds and runs all tests on every push
 - **SFML visualization** — real-time rendering of trajectory, velocity, and HUD *(in progress)*
-
 ---
 
 ## Architecture
@@ -28,7 +27,8 @@ Built as a portfolio project demonstrating clean architecture, modern C++ practi
 src/
 ├── core/
 │   ├── State.hpp                 # spacecraft state: position, velocity, mass
-│   └── SimulationEngine.hpp/.cpp # main simulation loop, RK4 integrator, logging
+│   ├── SimulationEngine.hpp/.cpp # main simulation loop, RK4 integrator, logging
+│   └── Diagnostics.hpp           # diagnostic structure
 ├── physics/
 │   └── PhysicsModel.hpp/cpp      # force accumulation, drag, gravity
 ├── control/
@@ -37,6 +37,8 @@ src/
 │   └── Autopilot.hpp/cpp         # dual-axis autopilot using PIDController
 ├── rendering/
 │   └── Renderer.hpp/cpp          # SFML-based visualization
+├── services/
+│   └── DataLogger.hpp/cpp        # Data logging
 └── main.cpp
 
 tests/
@@ -164,10 +166,8 @@ sudo apt-get install cmake build-essential libsfml-dev
 git clone https://github.com/BartoliniBartlomiej/Spacecraft-Autopilot.git
 cd Spacecraft-Autopilot
 
-cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel
-
-./build/spacecraft
+ctest --test-dir build --output-on-failure && ./build/spacecraft
 ```
 
 ### Run Tests

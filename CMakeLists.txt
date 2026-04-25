@@ -17,6 +17,7 @@ set(SOURCES
     src/control/PIDController.cpp
     src/control/Autopilot.cpp
     src/services/DataLogger.cpp
+    src/multisimulation/BatchSimulation.cpp 
 )
 
 if(ENABLE_RENDERING)

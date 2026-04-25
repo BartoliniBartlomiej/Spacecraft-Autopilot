@@ -36,7 +36,7 @@ std::vector<BatchSimulator::RunResult> BatchSimulator::run(const std::vector<Sce
             std::chrono::duration<double>(run_end - run_start).count();
 
         if (save_reports){
-            logger.saveReport("output_data/batch_" + scenario.label + ".csv", engine, false);
+            logger.saveReport("output_data/batch_" + scenario.label + ".csv", engine, true);
 
         }
 

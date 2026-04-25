@@ -25,9 +25,7 @@ public:
     };
 
     // Run a pre-built list of scenarios and return results
-    [[nodiscard]] static std::vector<RunResult> run(
-        const std::vector<Scenario>& scenarios,
-        bool save_reports = false);
+    [[nodiscard]] static std::vector<RunResult> run(const std::vector<Scenario>& scenarios,bool save_reports = false);
 
     // Build scenarios by grid-searching vertical PID gains
     [[nodiscard]] static std::vector<Scenario> buildGridSearch(

@@ -24,12 +24,20 @@ public:
         double                   duration_s;
     };
 
+    // Sweep range and step for a single set of PID gains (kp / ki / kd independently)
+    struct GainRange {
+        double kp_max  = 0.0;  double kp_step = 1.0;
+        double ki_max  = 0.0;  double ki_step = 1.0;
+        double kd_max  = 0.0;  double kd_step = 1.0;
+    };
+
     // Run a pre-built list of scenarios and return results
     [[nodiscard]] static std::vector<RunResult> run(const std::vector<Scenario>& scenarios,bool save_reports = false);
 
-    // Build scenarios by grid-searching vertical PID gains
+    // Build scenarios by independently grid-searching vertical and horizontal PID gains
     [[nodiscard]] static std::vector<Scenario> buildGridSearch(
-        double kp_max, double ki_max, double kd_max, double step,
+        const GainRange& vertical,
+        const GainRange& horizontal,
         const State& initial_state,
         const SimulationEngine::Config& sim_config,
         const Autopilot::Config& base_autopilot_config);

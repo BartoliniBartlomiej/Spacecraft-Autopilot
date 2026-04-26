@@ -168,13 +168,19 @@ static void runBatch()
     const auto initial  = makeInitialState();
 
     auto scenarios = BatchSimulator::buildGridSearch(
-        100.0, 10.0, 50.0,  // kp_max, ki_max, kd_max
-        5.0,                 // step
+        // vertical gains sweep
+        {.kp_max = 100.0, .kp_step = 5.0,
+        .ki_max =  10.0, .ki_step = 5.0,
+        .kd_max =  50.0, .kd_step = 5.0},
+        // horizontal gains sweep
+        {.kp_max = 100.0, .kp_step = 5.0,
+        .ki_max =  10.0, .ki_step = 5.0,
+        .kd_max =  50.0, .kd_step = 5.0},
         initial, sim_cfg, base_cfg);
 
     std::cout << std::format("Grid generated: {} scenarios\n", scenarios.size());
 
-    BatchSimulator::run(scenarios, /*save_reports=*/true);
+    BatchSimulator::run(scenarios, /*save_reports=*/false);
 }
 
 // ---------------------------------------------------------------------------

@@ -7,12 +7,13 @@
 
 #include "services/DataLogger.hpp"
 
-std::vector<BatchSimulator::RunResult> BatchSimulator::run(const std::vector<Scenario>& scenarios, bool save_reports) {
+std::vector<BatchSimulator::RunResult> BatchSimulator::run(
+    const std::vector<Scenario>& scenarios, bool save_reports)
+{
     std::vector<RunResult> results;
+    results.reserve(scenarios.size());
 
     DataLogger logger;
-
-    results.reserve(scenarios.size());
 
     const auto total_start = std::chrono::high_resolution_clock::now();
 
@@ -21,7 +22,8 @@ std::vector<BatchSimulator::RunResult> BatchSimulator::run(const std::vector<Sce
     std::cout << std::format("{:<20} | {:<14} | {:<10}\n", "Label", "Status", "Time [s]");
     std::cout << std::string(55, '-') << "\n";
 
-    for (const auto& scenario : scenarios) {
+    for (const auto& scenario : scenarios)
+    {
         SimulationEngine engine{
             scenario.sim_config,
             std::make_unique<Autopilot>(scenario.autopilot_config),
@@ -35,10 +37,8 @@ std::vector<BatchSimulator::RunResult> BatchSimulator::run(const std::vector<Sce
         const double elapsed =
             std::chrono::duration<double>(run_end - run_start).count();
 
-        if (save_reports){
-            logger.saveReport("output_data/batch_" + scenario.label + ".csv", engine, true);
-
-        }
+        if (save_reports)
+            logger.saveReport("output_data/batch_" + scenario.label + ".csv", engine);
 
         const std::string status_str = [&] {
             switch (status) {
@@ -76,26 +76,34 @@ std::vector<BatchSimulator::RunResult> BatchSimulator::run(const std::vector<Sce
 }
 
 std::vector<BatchSimulator::Scenario> BatchSimulator::buildGridSearch(
-    double kp_max, double ki_max, double kd_max, double step,
+    const GainRange& vertical,
+    const GainRange& horizontal,
     const State& initial_state,
     const SimulationEngine::Config& sim_config,
     const Autopilot::Config& base_autopilot_config)
 {
     std::vector<Scenario> scenarios;
 
-    for (double kp = 0.0; kp <= kp_max; kp += step)
-        for (double ki = 0.0; ki <= ki_max; ki += step)
-            for (double kd = 0.0; kd <= kd_max; kd += step) {
-                Autopilot::Config cfg  = base_autopilot_config;
-                cfg.vertical_gains     = {kp, ki, kd};
+    for (double v_kp = 0.0; v_kp <= vertical.kp_max;   v_kp += vertical.kp_step)
+    for (double v_ki = 0.0; v_ki <= vertical.ki_max;   v_ki += vertical.ki_step)
+    for (double v_kd = 0.0; v_kd <= vertical.kd_max;   v_kd += vertical.kd_step)
+    for (double h_kp = 0.0; h_kp <= horizontal.kp_max; h_kp += horizontal.kp_step)
+    for (double h_ki = 0.0; h_ki <= horizontal.ki_max; h_ki += horizontal.ki_step)
+    for (double h_kd = 0.0; h_kd <= horizontal.kd_max; h_kd += horizontal.kd_step)
+    {
+        Autopilot::Config cfg = base_autopilot_config;
+        cfg.vertical_gains    = {v_kp, v_ki, v_kd};
+        cfg.horizontal_gains  = {h_kp, h_ki, h_kd};
 
-                scenarios.push_back({
-                    .initial_state    = initial_state,
-                    .autopilot_config = cfg,
-                    .sim_config       = sim_config,
-                    .label            = std::format("kp{:.1f}_ki{:.1f}_kd{:.1f}", kp, ki, kd)
-                });
-            }
+        scenarios.push_back({
+            .initial_state    = initial_state,
+            .autopilot_config = cfg,
+            .sim_config       = sim_config,
+            .label            = std::format(
+                "v({:.1f},{:.1f},{:.1f})_h({:.1f},{:.1f},{:.1f})",
+                v_kp, v_ki, v_kd, h_kp, h_ki, h_kd)
+        });
+    }
 
     return scenarios;
 }

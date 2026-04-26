@@ -17,7 +17,8 @@ set(SOURCES
     src/control/PIDController.cpp
     src/control/Autopilot.cpp
     src/services/DataLogger.cpp
-    src/multisimulation/BatchSimulation.cpp 
+    src/multisimulation/BatchSimulation.cpp
+    src/services/ConfigFile.cpp
 )
 
 if(ENABLE_RENDERING)
@@ -34,8 +35,7 @@ target_compile_options(spacecraft PRIVATE
 )
 
 if(ENABLE_RENDERING)
-    target_link_libraries(spacecraft PRIVATE
-        SFML::Graphics SFML::Window SFML::System)
+    target_link_libraries(spacecraft PRIVATE SFML::Graphics SFML::Window SFML::System)
     target_compile_definitions(spacecraft PRIVATE ENABLE_RENDERING)
 endif()
 

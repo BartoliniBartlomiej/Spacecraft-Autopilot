@@ -9,8 +9,6 @@
 #include "rendering/Renderer.hpp"
 #endif
 
-
-
 // int main()
 // {
 //     // --- Choice Menu ---

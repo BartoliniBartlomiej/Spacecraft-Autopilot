@@ -19,6 +19,8 @@ Built as a portfolio project demonstrating clean architecture, modern C++ practi
 - **Unit tested** — GoogleTest coverage for physics, PID controller, and autopilot logic
 - **CI pipeline** — GitHub Actions builds and runs all tests on every push
 - **SFML visualization** — real-time rendering of trajectory, velocity, and HUD *(in progress)*
+- **High-Performance Multithreading** — parallelized batch simulations using `std::async` for ultra-fast PID grid searches
+
 ---
 
 ## Architecture
@@ -232,6 +234,26 @@ For visualization of the simulation, I use SFML library. The renderer displays t
 
 ---
 
+## Performance Optimization
+
+The **Batch Simulation** mode has been optimized using modern C++ multithreading. By leveraging `std::async` and thread-safe logging with `std::mutex`, the system can run hundreds of independent flight scenarios in parallel across all available CPU cores.
+
+- **Technology**: `std::async` (Parallel Policy), `std::future`, `std::mutex`.
+- **Safety**: Fully thread-safe console output and CSV data logging.
+- **Efficiency**: Up to **x faster** grid searches on multi-core systems.
+
+Previous aproach, with 1331 iterations took about 2.6 seconds
+![Previous multisimulation](assets/single.png)
+
+New version with the same 1331 iterations takes 0.8 seconds (~70% reduction in execution time)
+![New multisimulation](assets/multi.png)
+
+And that was just "easy" multisimulation, only vertical PID gains were changed from 0 to 100 with step 10 (11 x 11 x 11 iterations). With more iterations  (with both vertical and horizontal PID gains changing) the performance difference will be even more significant. With every gain (v and h) we have 1 771 561 iterations, which takes about 17 minutes with the previous aproach and only 2.5 minutes with the new multithreaded version.
+
+Although, now saving to 'configurations.csv' file is not in order. Thats not a problem, this file is primarly used for saving configs and how they perform. 
+
+
+---
 ## Project Status
 
 | Phase | Status |

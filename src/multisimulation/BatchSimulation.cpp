@@ -5,58 +5,71 @@
 #include <format>
 #include <chrono>
 
+#include <future>
+#include <mutex>
+
 #include "services/DataLogger.hpp"
 
 std::vector<BatchSimulator::RunResult> BatchSimulator::run(const std::vector<Scenario>& scenarios, bool save_reports) {
     std::vector<RunResult> results;
-
-    DataLogger logger;
-
     results.reserve(scenarios.size());
 
     const auto total_start = std::chrono::high_resolution_clock::now();
 
-    std::cout << std::format("\n[BATCH] Running {} scenarios\n", scenarios.size());
+    std::cout << std::format("\n[BATCH] Running {} scenarios (Parallel)\n", scenarios.size());
     std::cout << std::string(55, '-') << "\n";
     std::cout << std::format("{:<20} | {:<14} | {:<10}\n", "Label", "Status", "Time [s]");
     std::cout << std::string(55, '-') << "\n";
 
+    std::mutex output_mutex;
+    std::vector<std::future<RunResult>> futures;
+
     for (const auto& scenario : scenarios) {
-        SimulationEngine engine{
-            scenario.sim_config,
-            std::make_unique<Autopilot>(scenario.autopilot_config),
-            PhysicsModel{}
-        };
+        futures.push_back(std::async(std::launch::async, [&scenario, save_reports, &output_mutex]() -> RunResult {
+            SimulationEngine engine{
+                scenario.sim_config,
+                std::make_unique<Autopilot>(scenario.autopilot_config),
+                PhysicsModel{}
+            };
 
-        const auto run_start = std::chrono::high_resolution_clock::now();
-        const auto status    = engine.run(scenario.initial_state);
-        const auto run_end   = std::chrono::high_resolution_clock::now();
+            const auto run_start = std::chrono::high_resolution_clock::now();
+            const auto status    = engine.run(scenario.initial_state);
+            const auto run_end   = std::chrono::high_resolution_clock::now();
 
-        const double elapsed =
-            std::chrono::duration<double>(run_end - run_start).count();
+            const double elapsed =
+                std::chrono::duration<double>(run_end - run_start).count();
 
-        if (save_reports){
-            logger.saveReport("output_data/batch_" + scenario.label + ".csv", engine, true);
-
-        }
-
-        const std::string status_str = [&] {
-            switch (status) {
-                case SimulationEngine::Status::Landed:           return "Landed";
-                case SimulationEngine::Status::Crashed:          return "Crashed";
-                case SimulationEngine::Status::FuelExhausted:    return "FuelExhausted";
-                case SimulationEngine::Status::TimeLimitReached: return "TimeLimitReached";
-                default:                                         return "Unknown";
+            if (save_reports) {
+                DataLogger logger;
+                logger.saveReport("output_data/batch_" + scenario.label + ".csv", engine, true);
             }
-        }();
 
-        std::cout << std::format("{:<20} | {:<14} | {:.3f}\n",
-            scenario.label, status_str, elapsed);
+            const std::string status_str = [&] {
+                switch (status) {
+                    case SimulationEngine::Status::Landed:           return "Landed";
+                    case SimulationEngine::Status::Crashed:          return "Crashed";
+                    case SimulationEngine::Status::FuelExhausted:    return "FuelExhausted";
+                    case SimulationEngine::Status::TimeLimitReached: return "TimeLimitReached";
+                    default:                                         return "Unknown";
+                }
+            }();
 
-        results.push_back({scenario.label, status, elapsed});
+            {
+                std::lock_guard<std::mutex> lock(output_mutex);
+                std::cout << std::format("{:<20} | {:<14} | {:.3f}\n",
+                    scenario.label, status_str, elapsed);
+            }
+
+            return {scenario.label, status, elapsed};
+        }));
+    }
+
+    for (auto& f : futures) {
+        results.push_back(f.get());
     }
 
     const auto total_end = std::chrono::high_resolution_clock::now();
+
     const double total   =
         std::chrono::duration<double>(total_end - total_start).count();
 

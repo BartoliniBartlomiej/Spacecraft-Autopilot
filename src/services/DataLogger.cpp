@@ -6,9 +6,12 @@
 #include <fstream>
 #include <filesystem>
 #include <format>
+#include <mutex>
 
+static std::mutex g_log_mutex;
 
 void DataLogger::saveReport(const std::string& filename, SimulationEngine& engine, bool dontSaveReport) const {
+    std::lock_guard<std::mutex> lock(g_log_mutex);
     std::string finalPath = "-";
 
     if (dontSaveReport) {

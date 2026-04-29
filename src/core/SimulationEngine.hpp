@@ -4,6 +4,7 @@
 
 #include "core/State.hpp"
 #include "core/Diagnostics.hpp"
+#include "core/Spacecraft.hpp"
 #include "physics/PhysicsModel.hpp"
 #include "control/ControlStrategy.hpp"
 
@@ -19,6 +20,7 @@ public:
         double time_limit           = 100.0;
         double landing_altitude     = 0.0;
         double max_landing_velocity = 2.0;
+        double target_altitude      = -1.0; // -1 means no target altitude
     };
 
     enum class Status {
@@ -26,7 +28,8 @@ public:
         Landed,
         Crashed,
         FuelExhausted,
-        TimeLimitReached
+        TimeLimitReached,
+        TargetReached
     };
 
     struct StepRecord {
@@ -41,7 +44,8 @@ public:
                                             double time,
                                             Status)>;
 
-    SimulationEngine(Config config,
+    SimulationEngine(const Spacecraft& spacecraft,
+                     Config config,
                      std::unique_ptr<ControlStrategy> autopilot,
                      PhysicsModel physics);
 
@@ -66,6 +70,7 @@ private:
     [[nodiscard]] Status check_status(const State& state) const;
     [[nodiscard]] State  integrate(const State& state, const ThrustCommand& cmd) const;
 
+    const Spacecraft&                m_spacecraft;
     Config                           m_config;
     std::unique_ptr<ControlStrategy> m_autopilot;
     PhysicsModel                     m_physics;

@@ -4,9 +4,11 @@
 #include <cmath>
 
 
-SimulationEngine::SimulationEngine(Config config,
+SimulationEngine::SimulationEngine(const Spacecraft& spacecraft,
+                                   Config config,
                                    std::unique_ptr<ControlStrategy> autopilot,
                                    PhysicsModel physics) :
+    m_spacecraft{spacecraft},
     m_config{config},
     m_autopilot{std::move(autopilot)},
     m_physics{physics}
@@ -55,12 +57,20 @@ void SimulationEngine::set_step_callback(StepCallback callback) {
 }
 
 SimulationEngine::Status SimulationEngine::check_status(const State& state) const {
-    // Time limit reached
-    if (state.mass <= state.dryMass)
+    // Fuel exhausted check using spacecraft's dry mass
+    if (state.mass <= m_spacecraft.dry_mass)
         return Status::FuelExhausted;
 
-    // Eagle (Spacecraft) has landed 
-    if (state.y <= m_config.landing_altitude)
+    // Check target altitude (for Launch)
+    if (m_config.target_altitude > 0.0 && state.y >= m_config.target_altitude) {
+        return Status::TargetReached;
+    }
+
+    // Landing check
+    // To allow launches from y=0, we only trigger Landed/Crashed if vy < 0 or if time > 0.5s
+    double time = m_history.empty() ? 0.0 : m_history.back().time;
+
+    if (state.y <= m_config.landing_altitude && (time > 0.5 || state.vy < 0))
     {
         const double speed = std::sqrt(state.vx * state.vx + state.vy * state.vy);
 
@@ -120,6 +130,7 @@ std::string SimulationEngine::statusToString(SimulationEngine::Status status) co
             case SimulationEngine::Status::Crashed:             return "Crashed";
             case SimulationEngine::Status::FuelExhausted:       return "FuelExhausted";
             case SimulationEngine::Status::TimeLimitReached:    return "TimeLimitReached";
+            case SimulationEngine::Status::TargetReached:       return "TargetReached";
             default:                                            return "Unknown";
         }
     }

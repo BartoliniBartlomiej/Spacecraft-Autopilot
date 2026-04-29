@@ -1,0 +1,18 @@
+
+{
+    "name": "Lunar Lander",
+    "width": 4.5,
+    "height": 7.0,
+    "dry_mass": 300.0,
+    "fuel_capacity": 200.0,
+    "thrusters": [
+        {
+            "name": "Main Engine",
+            "max_thrust": 15000.0,
+            "pos_x": 0.0,
+            "pos_y": -3.5,
+            "dir_x": 0.0,
+            "dir_y": 1.0
+        }
+    ]
+}

@@ -2,16 +2,17 @@
 #include "control/Autopilot.hpp"
 #include <algorithm>
 
-Autopilot::Autopilot(Config config)
-    : m_config{config}
-    , m_vertical_pid{config.vertical_gains, 0.0, config.max_thrust}
+Autopilot::Autopilot(const Spacecraft& spacecraft, Config config)
+    : m_spacecraft{spacecraft}
+    , m_config{config}
+    , m_vertical_pid{config.vertical_gains, 0.0, spacecraft.getTotalMaxThrust()}
     , m_horizontal_pid{config.horizontal_gains,
-                       -config.max_thrust * 0.3,
-                        config.max_thrust * 0.3}
+                       -spacecraft.getTotalMaxThrust() * 0.3,
+                        spacecraft.getTotalMaxThrust() * 0.3}
 {}
 
 ThrustCommand Autopilot::compute(const State& state, double dt) {
-    if (state.mass <= state.dryMass) {
+    if (state.mass <= m_spacecraft.dry_mass) {
         return {0.0, 0.0};
     }
 
@@ -30,7 +31,7 @@ ThrustCommand Autopilot::compute(const State& state, double dt) {
     m_diagnostics.horizontal_gains  = m_config.horizontal_gains;
     
     ThrustCommand cmd;
-    cmd.fy = std::clamp(gravity_compensation + vertical_out, 0.0, m_config.max_thrust);
+    cmd.fy = std::clamp(gravity_compensation + vertical_out, 0.0, m_spacecraft.getTotalMaxThrust());
     cmd.fx = horizontal_out;
 
     return cmd;

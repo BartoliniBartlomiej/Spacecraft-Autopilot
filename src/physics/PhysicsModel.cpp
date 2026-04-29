@@ -3,9 +3,10 @@
 #include "physics/PhysicsModel.hpp"
 #include <cmath>
 
-PhysicsModel::PhysicsModel(double gravity, double drag_coefficient)
+PhysicsModel::PhysicsModel(const Spacecraft& spacecraft, double gravity, double drag_coefficient)
     : m_gravity{gravity},
-    m_drag_coefficient{drag_coefficient}
+    m_drag_coefficient{drag_coefficient},
+    m_spacecraft{spacecraft}
 {}
 
 State PhysicsModel::derivative(const State& s, const ThrustCommand& cmd) const {
@@ -26,7 +27,7 @@ State PhysicsModel::derivative(const State& s, const ThrustCommand& cmd) const {
     double total_thrust = std::sqrt(cmd.fx * cmd.fx + cmd.fy * cmd.fy);
     
     // Mass decreases only if there's significant thrust and we have fuel left
-    if (s.mass > s.dryMass) { // dry mass
+    if (s.mass > m_spacecraft.dry_mass) { 
         deriv.mass = -fuel_consumption_rate * total_thrust;
     } else {
         deriv.mass = 0.0;

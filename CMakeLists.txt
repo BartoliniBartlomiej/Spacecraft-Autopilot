@@ -1,18 +1,29 @@
 cmake_minimum_required(VERSION 3.20)
 project(SpacecraftAutopilot VERSION 0.1.0 LANGUAGES CXX)
 
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(SFML_DIR "/opt/homebrew/lib/cmake/SFML")
+
+# Try to find SFML in standard locations
+list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+include(FetchContent)
+FetchContent_Declare(
+    json
+    URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz
+)
+FetchContent_MakeAvailable(json)
 
 option(ENABLE_RENDERING "Enable SFML rendering" ON)
 
 set(SOURCES
     src/main.cpp
     src/core/SimulationEngine.cpp
+    src/core/Spacecraft.cpp
     src/physics/PhysicsModel.cpp
     src/control/PIDController.cpp
     src/control/Autopilot.cpp
@@ -31,6 +42,10 @@ target_include_directories(spacecraft PRIVATE src)
 
 target_compile_options(spacecraft PRIVATE
     -Wall -Wextra -Wpedantic
+)
+
+target_link_libraries(spacecraft PRIVATE
+    nlohmann_json::nlohmann_json
 )
 
 if(ENABLE_RENDERING)

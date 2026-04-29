@@ -3,6 +3,7 @@
 #pragma once
 
 #include "core/State.hpp"
+#include "core/Spacecraft.hpp"
 #include "physics/PhysicsModel.hpp"
 #include "core/SimulationEngine.hpp"
 #include <SFML/Graphics.hpp>
@@ -17,10 +18,9 @@ public:
         unsigned int height       = 768;
         float        scale        = 1.0f;   // pixels per meter
         float        ground_y     = 0.0f;   // ground level in meters
-        double       max_thrust   = 15000.0;
     };
 
-    explicit Renderer(Config config);
+    explicit Renderer(const Spacecraft& spacecraft, Config config);
 
     [[nodiscard]] bool is_open() const;
 
@@ -34,6 +34,7 @@ public:
 private:
     [[nodiscard]] sf::Vector2f world_to_screen(float x, float y) const;
 
+    const Spacecraft&         m_spacecraft;
     Config                    m_config;
     sf::RenderWindow          m_window;
     sf::Font                  m_font;

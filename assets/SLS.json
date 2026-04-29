@@ -1,0 +1,33 @@
+{
+    "name": "SLS",
+    "width": 10.0,
+    "height": 70.0,
+    "dry_mass": 3000.0,
+    "fuel_capacity": 2000.0,
+    "thrusters": [
+        {
+            "name": "Main Engine",
+            "max_thrust": 30000.0,
+            "pos_x": 0.0,
+            "pos_y": -30.5,
+            "dir_x": 0.0,
+            "dir_y": 1.0
+        },
+        {
+            "name": "Side Engine 1",
+            "max_thrust": 50000.0,
+            "pos_x": -10.0,
+            "pos_y": -30.5,
+            "dir_x": 0.0,
+            "dir_y": 1.0
+        },
+        {
+            "name": "Side Engine 2",
+            "max_thrust": 50000.0,
+            "pos_x": 10.0,
+            "pos_y": -30.5,
+            "dir_x": 100.0,
+            "dir_y": 1.0
+        }
+    ]
+}

@@ -1,114 +1,64 @@
-// src/multisimulation/BatchSimulation.cpp
 #include "multisimulation/BatchSimulation.hpp"
-
+#include "services/DataLogger.hpp"
 #include <iostream>
 #include <format>
 #include <chrono>
 
-#include <future>
-#include <mutex>
-
-#include "services/DataLogger.hpp"
-
 std::vector<BatchSimulator::RunResult> BatchSimulator::run(const std::vector<Scenario>& scenarios, bool save_reports) {
     std::vector<RunResult> results;
-    results.reserve(scenarios.size());
-
-    const auto total_start = std::chrono::high_resolution_clock::now();
-
-    std::cout << std::format("\n[BATCH] Running {} scenarios (Parallel)\n", scenarios.size());
-    std::cout << std::string(55, '-') << "\n";
-    std::cout << std::format("{:<20} | {:<14} | {:<10}\n", "Label", "Status", "Time [s]");
-    std::cout << std::string(55, '-') << "\n";
-
-    std::mutex output_mutex;
-    std::vector<std::future<RunResult>> futures;
+    DataLogger logger;
 
     for (const auto& scenario : scenarios) {
-        futures.push_back(std::async(std::launch::async, [&scenario, save_reports, &output_mutex]() -> RunResult {
-            SimulationEngine engine{
-                scenario.sim_config,
-                std::make_unique<Autopilot>(scenario.autopilot_config),
-                PhysicsModel{}
-            };
+        if (!scenario.spacecraft) continue;
 
-            const auto run_start = std::chrono::high_resolution_clock::now();
-            const auto status    = engine.run(scenario.initial_state);
-            const auto run_end   = std::chrono::high_resolution_clock::now();
+        auto start = std::chrono::steady_clock::now();
 
-            const double elapsed =
-                std::chrono::duration<double>(run_end - run_start).count();
+        SimulationEngine engine{
+            *scenario.spacecraft,
+            scenario.sim_config,
+            std::make_unique<Autopilot>(*scenario.spacecraft, scenario.autopilot_config),
+            PhysicsModel{*scenario.spacecraft}
+        };
 
-            if (save_reports) {
-                DataLogger logger;
-                logger.saveReport("output_data/batch_" + scenario.label + ".csv", engine, true);
-            }
+        const auto status = engine.run(scenario.initial_state);
 
-            const std::string status_str = [&] {
-                switch (status) {
-                    case SimulationEngine::Status::Landed:           return "Landed";
-                    case SimulationEngine::Status::Crashed:          return "Crashed";
-                    case SimulationEngine::Status::FuelExhausted:    return "FuelExhausted";
-                    case SimulationEngine::Status::TimeLimitReached: return "TimeLimitReached";
-                    default:                                         return "Unknown";
-                }
-            }();
+        auto end = std::chrono::steady_clock::now();
+        std::chrono::duration<double> diff = end - start;
 
-            {
-                std::lock_guard<std::mutex> lock(output_mutex);
-                std::cout << std::format("{:<20} | {:<14} | {:.3f}\n",
-                    scenario.label, status_str, elapsed);
-            }
+        results.push_back({scenario.label, status, diff.count()});
 
-            return {scenario.label, status, elapsed};
-        }));
+        if (save_reports) {
+            std::string filename = std::format("output_data/batch_{}.csv", scenario.label);
+            logger.saveReport(filename, engine);
+        }
     }
-
-    for (auto& f : futures) {
-        results.push_back(f.get());
-    }
-
-    const auto total_end = std::chrono::high_resolution_clock::now();
-
-    const double total   =
-        std::chrono::duration<double>(total_end - total_start).count();
-
-    const long successes = std::count_if(results.begin(), results.end(),
-        [](const RunResult& r) {
-            return r.status == SimulationEngine::Status::Landed;
-        });
-
-    std::cout << std::string(55, '-') << "\n";
-    std::cout << std::format("Successes:      {}/{}\n", successes, results.size());
-    std::cout << std::format("Success rate:   {:.1f}%\n",
-        100.0 * static_cast<double>(successes) / static_cast<double>(results.size()));
-    std::cout << std::format("Total time:     {:.3f} s\n", total);
-    std::cout << std::string(55, '-') << "\n";
 
     return results;
 }
 
 std::vector<BatchSimulator::Scenario> BatchSimulator::buildGridSearch(
+    std::shared_ptr<Spacecraft> spacecraft,
     double kp_max, double ki_max, double kd_max, double step,
     const State& initial_state,
     const SimulationEngine::Config& sim_config,
-    const Autopilot::Config& base_autopilot_config)
+    const Autopilot::Config& base_autopilot_config) 
 {
     std::vector<Scenario> scenarios;
 
-    for (double kp = 0.0; kp <= kp_max; kp += step)
-        for (double ki = 0.0; ki <= ki_max; ki += step)
+    for (double kp = 0.0; kp <= kp_max; kp += step) {
+        for (double ki = 0.0; ki <= ki_max; ki += step) {
             for (double kd = 0.0; kd <= kd_max; kd += step) {
-                Autopilot::Config cfg  = base_autopilot_config;
-                cfg.vertical_gains     = {kp, ki, kd};
-
-                scenarios.push_back({
-                    .initial_state    = initial_state,
-                    .autopilot_config = cfg,
-                    .sim_config       = sim_config,
-                    .label            = std::format("kp{:.1f}_ki{:.1f}_kd{:.1f}", kp, ki, kd)
-                });
+                Scenario s;
+                s.spacecraft = spacecraft;
+                s.initial_state = initial_state;
+                s.sim_config = sim_config;
+                s.autopilot_config = base_autopilot_config;
+                s.autopilot_config.vertical_gains = {kp, ki, kd};
+                s.label = std::format("PID_{:.1f}_{:.1f}_{:.1f}", kp, ki, kd);
+                scenarios.push_back(s);
             }
+        }
+    }
 
     return scenarios;
 }

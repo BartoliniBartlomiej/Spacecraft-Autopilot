@@ -1,9 +1,18 @@
 #include <gtest/gtest.h>
 #include "physics/PhysicsModel.hpp"
+#include "core/Spacecraft.hpp"
+
+static Spacecraft createTestSpacecraft() {
+    Spacecraft s;
+    s.dry_mass = 50.0;
+    s.fuel_capacity = 50.0;
+    return s;
+}
 
 TEST(PhysicsModelTest, FreeFallAcceleration)
 {
-    PhysicsModel physics{9.81, 0.0};
+    Spacecraft sc = createTestSpacecraft();
+    PhysicsModel physics{sc, 9.81, 0.0};
 
     State s;
     s.mass = 100.0;
@@ -19,7 +28,8 @@ TEST(PhysicsModelTest, FreeFallAcceleration)
 
 TEST(PhysicsModelTest, ThrustCounteractsGravity)
 {
-    PhysicsModel physics{9.81, 0.0};
+    Spacecraft sc = createTestSpacecraft();
+    PhysicsModel physics{sc, 9.81, 0.0};
 
     State s;
     s.mass = 100.0;
@@ -34,7 +44,8 @@ TEST(PhysicsModelTest, ThrustCounteractsGravity)
 
 TEST(PhysicsModelTest, DragOpposeVelocity)
 {
-    PhysicsModel physics{0.0, 1.0}; 
+    Spacecraft sc = createTestSpacecraft();
+    PhysicsModel physics{sc, 0.0, 1.0}; 
 
     State s;
     s.mass = 1.0;

@@ -9,5 +9,4 @@ struct State
     double vx = 0.0; // Velocity in x-axis [m/s]
     double vy = 0.0; // Velocity in y-axis [m/s]
     double mass = 0.0; // Mass of the spacecraft + fuel [kg]
-    double dryMass = 300.0; // Dry mass of the spacecraft without fuel [kg]
 };

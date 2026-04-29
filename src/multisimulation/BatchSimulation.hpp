@@ -3,14 +3,17 @@
 
 #include "core/SimulationEngine.hpp"
 #include "core/State.hpp"
+#include "core/Spacecraft.hpp"
 #include "control/Autopilot.hpp"
 #include <vector>
 #include <string>
+#include <memory>
 
 class BatchSimulator {
 public:
     // Describes a single simulation scenario to run
     struct Scenario {
+        std::shared_ptr<Spacecraft> spacecraft;
         State                    initial_state;
         Autopilot::Config        autopilot_config;
         SimulationEngine::Config sim_config;
@@ -25,10 +28,11 @@ public:
     };
 
     // Run a pre-built list of scenarios and return results
-    [[nodiscard]] static std::vector<RunResult> run(const std::vector<Scenario>& scenarios,bool save_reports = false);
+    [[nodiscard]] static std::vector<RunResult> run(const std::vector<Scenario>& scenarios, bool save_reports = false);
 
     // Build scenarios by grid-searching vertical PID gains
     [[nodiscard]] static std::vector<Scenario> buildGridSearch(
+        std::shared_ptr<Spacecraft> spacecraft,
         double kp_max, double ki_max, double kd_max, double step,
         const State& initial_state,
         const SimulationEngine::Config& sim_config,
